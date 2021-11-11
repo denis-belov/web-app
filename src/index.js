@@ -1,6 +1,6 @@
 import '@babel/polyfill';
 
-import wasm_code from './cpp/src/wasm-entry2.cpp';
+import wasm_code from './cpp/src/entry-wasm32.cpp';
 
 
 

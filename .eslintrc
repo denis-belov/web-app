@@ -8,7 +8,7 @@
 
 		"babelOptions":
 		{
-			"configFile": "./webapp/.babelrc"
+			"configFile": "./web-app/.babelrc"
 		}
 	},
 
