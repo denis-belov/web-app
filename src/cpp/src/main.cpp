@@ -78,7 +78,7 @@ struct Material
 	{R"(
 		void main (void)
 		{
-			gl_FragColor = vec4(1.0);
+			gl_FragColor = vec4(0.25, 0, 0, 1.0);
 		}
 	)"};
 };
@@ -151,8 +151,6 @@ struct Scene
 
 	void addObject (SceneObject&);
 	void addObject (SceneObject*);
-
-	float* getVertexData (void);
 };
 
 void Scene::addObject (SceneObject& object)
@@ -162,7 +160,7 @@ void Scene::addObject (SceneObject& object)
 
 	vertex_data.resize(vertex_data.size() + object.vertex_data.size());
 
-	memcpy(vertex_data.data() + vertex_data.size() - object.vertex_data.size(), object.vertex_data.data(), object.vertex_data.size());
+	memcpy(vertex_data.data(), object.vertex_data.data(), object.vertex_data.size() * 4);
 }
 
 void Scene::addObject (SceneObject* object)
@@ -172,12 +170,9 @@ void Scene::addObject (SceneObject* object)
 
 	vertex_data.resize(vertex_data.size() + object->vertex_data.size());
 
-	memcpy(vertex_data.data() + vertex_data.size() - object->vertex_data.size(), object->vertex_data.data(), object->vertex_data.size());
-}
+	LOG(vertex_data.size() + object->vertex_data.size())
 
-float* Scene::getVertexData (void)
-{
-	return vertex_data.data();
+	memcpy(vertex_data.data(), object->vertex_data.data(), object->vertex_data.size() * 4);
 }
 
 
@@ -185,6 +180,7 @@ float* Scene::getVertexData (void)
 Scene* scene {};
 Material* material {};
 SceneObject* object {};
+SceneObject* object2 {};
 
 void destroy (void)
 {
@@ -196,10 +192,12 @@ void destroy (void)
 int main (void)
 {
 	scene = new Scene;
-	material = new Material { { .topology = Topology::LINES } };
+	material = new Material { { .topology = Topology::TRIANGLES } };
 	object = new SceneObject;
+	object2 = new SceneObject;
 
 	scene->addObject(object);
+	scene->addObject(object2);
 
 	LOG(777);
 	LOG(&(object->vertex_data));

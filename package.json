@@ -30,7 +30,7 @@
 		"eslint-config-strict": "14.0.1",
 		"eslint-config-strict-react": "9.0.2",
 		"browser-sync": "^2.26.14",
-		"node-sass": "^6.0.1"
+		"node-sass": "^5.0.0"
 	},
 	"dependencies": {
 		"@3d-smile/glkit": "0.0.56",
