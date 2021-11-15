@@ -1,10 +1,10 @@
+import './index.scss';
 import '@babel/polyfill';
 
+import WasmWrapper from '../../xgk-js/src/wasm-wrapper.js';
+import WebGLRenderer from '../../xgk-js/src/webgl-renderer.js';
+
 import wasm_code from './cpp/src/entry-wasm32.cpp';
-
-
-
-const ZERO_64 = new Uint8Array(64);
 
 
 
@@ -14,96 +14,47 @@ window.addEventListener
 
 	async () =>
 	{
-		let MEM_UI8 = null;
+		const wasm = new WasmWrapper();
 
-		const wasm_module = await WebAssembly.compile(wasm_code);
+		await wasm.init(wasm_code);
 
-		const wasm_module_instance =
-			await WebAssembly.instantiate
-			(
-				wasm_module,
+		wasm.exports.main();
 
-				{
-					env:
-					{
-						__memory_base: 0,
-						__table_base: 0,
-						memory: new WebAssembly.Memory({ initial: 1 }),
+		const webgl_renderer = new WebGLRenderer(wasm);
 
-						sin: Math.sin,
-						cos: Math.cos,
-						tan: Math.tan,
+		const gl = webgl_renderer._context;
 
-						memcpy (dst, src, len)
-						{
-							return (MEM_UI8.copyWithin(dst, src, src + len), dst);
-						},
+		const scene = new webgl_renderer.Scene(wasm.Addr(wasm.exports.material.value));
+		const material = new webgl_renderer.Material(wasm.Addr(wasm.exports.material.value));
+		const _object = new webgl_renderer.Object(wasm.Addr(wasm.exports.object.value));
 
-						zero (dst)
-						{
-							MEM_UI8.set(ZERO_64, dst);
-						},
+		LOG(scene);
+		LOG(material);
+		LOG(_object);
 
-						console_log: (x) => LOG('C/C++:', x),
 
-						_Znwm: () => 0, // new
-						_ZdlPv: () => 0, // delete
-						_ZSt20__throw_length_errorPKc: () => 0,
-						memset: () => 0,
-						printf: () => 0,
-						putchar: () => 0,
-					},
-				},
-			);
 
-		LOG(wasm_module_instance.exports);
+		const b = gl.createBuffer();
 
-		MEM_UI8 = new Uint8Array(wasm_module_instance.exports.memory.buffer);
+		gl.bindBuffer(gl.ARRAY_BUFFER, b);
+		gl.bufferData(gl.ARRAY_BUFFER, _object.vertex_data, gl.STATIC_DRAW);
+		gl.vertexAttribPointer(0, 3, gl.FLOAT, 0, 0, 0);
 
-		const MEM_F32 = new Float32Array(wasm_module_instance.exports.memory.buffer);
+		gl.enableVertexAttribArray(0);
 
-		const mat_test = wasm_module_instance.exports.mat_test.value;
 
-		LOG(mat_test)
 
-		LOG(MEM_F32.slice(mat_test / 4, (mat_test / 4) + 16));
-
-		let t = Date.now();
-
-		for (let i = 0; i < 999999; ++i)
+		const render = () =>
 		{
-			wasm_module_instance.exports._ZN3XGK4MATH4Mat413makeProjPerspEfffff
-			(
-				mat_test,
-				10,
-				window.innerWidth / window.innerHeight,
-				1,
-				2000,
-				1,
-			);
-		}
+			gl.clear(gl.COLOR_BUFFER_BIT);
 
-		LOG(Date.now() - t)
+			gl.useProgram(material.program);
 
-		LOG(MEM_F32.slice(mat_test / 4, (mat_test / 4) + 16));
+			gl.drawArrays(material.topology, 0, 9);
 
-		t = Date.now();
+			requestAnimationFrame(render);
+		};
 
-		for (let i = 0; i < 999999; ++i)
-		{
-			wasm_module_instance.exports._ZN3XGK4MATH4Mat414makeProjPersp2Efffff
-			(
-				mat_test,
-				10,
-				window.innerWidth / window.innerHeight,
-				1,
-				2000,
-				1,
-			);
-		}
-
-		LOG(Date.now() - t)
-
-		LOG(MEM_F32.slice(mat_test / 4, (mat_test / 4) + 16));
+		render();
 	},
 );
