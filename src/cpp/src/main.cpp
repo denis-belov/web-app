@@ -146,33 +146,41 @@ struct SceneObject
 
 struct Scene
 {
-	std::vector<float> vertex_data;
+	std::vector<float> vertex_data {};
 	// std::vector<uint32_t> index_data;
 
-	void addObject (SceneObject&);
+	// void addObject (SceneObject&);
 	void addObject (SceneObject*);
 };
 
-void Scene::addObject (SceneObject& object)
-{
-	object.scene_vertex_data_offset = vertex_data.size();
-	object.scene_vertex_data_length = object.vertex_data.size();
+// void Scene::addObject (SceneObject& object)
+// {
+// 	object.scene_vertex_data_offset = vertex_data.size();
+// 	object.scene_vertex_data_length = object.vertex_data.size();
 
-	vertex_data.resize(vertex_data.size() + object.vertex_data.size());
+// 	vertex_data.resize(vertex_data.size() + object.vertex_data.size());
 
-	memcpy(vertex_data.data(), object.vertex_data.data(), object.vertex_data.size() * 4);
-}
+// 	memcpy(vertex_data.data(), object.vertex_data.data(), object.vertex_data.size() * 4);
+// }
 
 void Scene::addObject (SceneObject* object)
 {
 	object->scene_vertex_data_offset = vertex_data.size();
 	object->scene_vertex_data_length = object->vertex_data.size();
 
+	std::size_t asd = vertex_data.size();
+
+	LOG(9091)
+	LOG(vertex_data.size())
+
 	vertex_data.resize(vertex_data.size() + object->vertex_data.size());
 
-	LOG(vertex_data.size() + object->vertex_data.size())
+	LOG(11)
+	LOG(vertex_data.size())
 
-	memcpy(vertex_data.data(), object->vertex_data.data(), object->vertex_data.size() * 4);
+	// LOG(vertex_data.data() + asd)
+
+	memcpy(vertex_data.data() + asd, object->vertex_data.data(), object->vertex_data.size() * 4);
 }
 
 
