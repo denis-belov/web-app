@@ -27,10 +27,12 @@ window.addEventListener
 		const scene = new webgl_renderer.Scene(wasm.Addr(wasm.exports.scene.value));
 		const material = new webgl_renderer.Material(wasm.Addr(wasm.exports.material.value));
 		const _object = new webgl_renderer.Object(wasm.Addr(wasm.exports.object.value));
+		const object2 = new webgl_renderer.Object(wasm.Addr(wasm.exports.object2.value));
 
 		LOG(scene);
 		LOG(material);
 		LOG(_object);
+		LOG(object2);
 
 
 
@@ -51,6 +53,8 @@ window.addEventListener
 			gl.useProgram(material.program);
 
 			gl.drawArrays(material.topology, 0, 9);
+
+			gl.drawArrays(material.topology, 9, 18);
 
 			requestAnimationFrame(render);
 		};

@@ -13,14 +13,14 @@
 extern "C" void console_log (std::size_t);
 #define LOG(x) console_log((std::size_t) x);
 
-// use template
+// use templates
 
 extern "C" void* getVectorData (std::vector<float>& v)
 {
 	return v.data();
 }
 
-extern "C" std::size_t getVectorSize (const std::vector<float>& v)
+extern "C" std::size_t getVectorSize (std::vector<float>& v)
 {
 	return v.size();
 }
@@ -149,19 +149,21 @@ struct Scene
 	std::vector<float> vertex_data {};
 	// std::vector<uint32_t> index_data;
 
-	// void addObject (SceneObject&);
+	void addObject (SceneObject&);
 	void addObject (SceneObject*);
 };
 
-// void Scene::addObject (SceneObject& object)
-// {
-// 	object.scene_vertex_data_offset = vertex_data.size();
-// 	object.scene_vertex_data_length = object.vertex_data.size();
+void Scene::addObject (SceneObject& object)
+{
+	object.scene_vertex_data_offset = vertex_data.size();
+	object.scene_vertex_data_length = object.vertex_data.size();
 
-// 	vertex_data.resize(vertex_data.size() + object.vertex_data.size());
+	std::size_t asd = vertex_data.size();
 
-// 	memcpy(vertex_data.data(), object.vertex_data.data(), object.vertex_data.size() * 4);
-// }
+	vertex_data.resize(vertex_data.size() + object.vertex_data.size());
+
+	memcpy(vertex_data.data() + asd, object.vertex_data.data(), object.vertex_data.size() * 4);
+}
 
 void Scene::addObject (SceneObject* object)
 {
@@ -170,15 +172,7 @@ void Scene::addObject (SceneObject* object)
 
 	std::size_t asd = vertex_data.size();
 
-	LOG(9091)
-	LOG(vertex_data.size())
-
 	vertex_data.resize(vertex_data.size() + object->vertex_data.size());
-
-	LOG(11)
-	LOG(vertex_data.size())
-
-	// LOG(vertex_data.data() + asd)
 
 	memcpy(vertex_data.data() + asd, object->vertex_data.data(), object->vertex_data.size() * 4);
 }
@@ -204,12 +198,17 @@ int main (void)
 	object = new SceneObject;
 	object2 = new SceneObject;
 
-	scene->addObject(object);
-	scene->addObject(object2);
+	float data[9]
+	{
+		-1.0f, -1.0f, 0.0f,
+		0.5f, -0.5f, 0.0f,
+		1.0f, 1.0f, 0.0f,
+	};
 
-	LOG(777);
-	LOG(&(object->vertex_data));
-	LOG(object->vertex_data.data());
+	memcpy(object2->vertex_data.data(), data, 36);
+
+	scene->addObject(*object);
+	scene->addObject(*object2);
 
 	return 0;
 }
