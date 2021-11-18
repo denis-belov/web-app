@@ -23,7 +23,8 @@
 		"include_directories":
 		[
 			"$(SRC)",
-			"$(REPS)/denis-belov"
+			"$(REPS)/denis-belov",
+			"$(REPS)/denis-belov/xgk-math/src"
 		],
 
 		"flags_additional": "$(STD_20) $(NO_LINK) $(VERBOSE) $(OPT_FASTX) $(SSE)",

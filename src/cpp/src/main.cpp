@@ -5,13 +5,17 @@
 
 #include <cstring>
 #include <vector>
+#include <string>
 
 #include "xgk-math/src/mat4/mat4.h"
+#include "xgk-math/src/orbit/orbit.h"
 
 
 
 extern "C" void console_log (std::size_t);
 #define LOG(x) console_log((std::size_t) x);
+
+extern "C" std::size_t getTime (void);
 
 // use templates
 
@@ -25,6 +29,16 @@ extern "C" std::size_t getVectorSize (std::vector<float>& v)
 	return v.size();
 }
 
+extern "C" void* getStringData (std::string& s)
+{
+	return s.data();
+}
+
+extern "C" std::size_t getStringSize (std::string& s)
+{
+	return s.size();
+}
+
 
 
 enum class Topology : std::size_t
@@ -36,20 +50,68 @@ enum class Topology : std::size_t
 
 
 
+struct Uniform
+{
+	void* object_addr {};
+
+	std::string name { "view_matrix" };
+};
+
 struct MaterialOptions
 {
 	Topology topology {};
 
-	char* vertex_shader_code {};
+	std::string glsl100es_code_vertex
+	{R"(
+		attribute vec3 a_position;
 
-	char* fragment_shader_code {};
+		uniform mat4 projection_matrix;
+		uniform mat4 view_matrix;
+
+		void main (void)
+		{
+			gl_Position = projection_matrix * view_matrix * vec4(a_position, 1.0);
+		}
+	)"};
+
+	std::string glsl100es_code_fragment
+	{R"(
+		void main (void)
+		{
+			gl_FragColor = vec4(0.25, 0, 0, 1.0);
+		}
+	)"};
+
+	std::string glsl300es_code_vertex
+	{R"(
+		#version 300es
+
+		layout (location = 0) in vec3 a_position;
+
+		void main (void)
+		{
+			gl_Position = vec4(a_position, 1.0f);
+		}
+	)"};
+
+	std::string glsl300es_code_fragment
+	{R"(
+		#version 300es
+
+		layout (location = 0) out vec4 fragment_color;
+
+		void main (void)
+		{
+			fragment_color = vec4(0.25f, 0, 0, 1.0f);
+		}
+	)"};
 };
 
 struct Material
 {
 	static std::vector<Material*> instances;
 
-	static Material* New (const Topology);
+	// static Material* New (const Topology);
 
 	static void destroy (void);
 
@@ -59,14 +121,18 @@ struct Material
 	Material (void);
 	Material (const MaterialOptions&);
 	Material (const MaterialOptions&&);
+	Material (const MaterialOptions*);
 
 
 
 	Topology topology { Topology::POINTS };
 
-	const char* vertex_shader_code
+	std::string glsl100es_code_vertex
 	{R"(
 		attribute vec3 a_position;
+
+		uniform mat4 projection_matrix;
+		uniform mat4 view_matrix;
 
 		void main (void)
 		{
@@ -74,13 +140,45 @@ struct Material
 		}
 	)"};
 
-	const char* fragment_shader_code
+	std::string glsl100es_code_fragment
 	{R"(
 		void main (void)
 		{
 			gl_FragColor = vec4(0.25, 0, 0, 1.0);
 		}
 	)"};
+
+	std::string glsl300es_code_vertex
+	{R"(
+		#version 300es
+
+		layout (location = 0) in vec3 a_position;
+
+		void main (void)
+		{
+			gl_Position = vec4(a_position, 1.0f);
+		}
+	)"};
+
+	std::string glsl300es_code_fragment
+	{R"(
+		#version 300es
+
+		layout (location = 0) out vec4 fragment_color;
+
+		void main (void)
+		{
+			fragment_color = vec4(0.25f, 0, 0, 1.0f);
+		}
+	)"};
+
+	std::vector<Uniform*> uniforms {};
+
+
+
+	void injectUniform (Uniform&);
+	void injectUniform (Uniform&&);
+	void injectUniform (Uniform*);
 };
 
 Material::Material (void)
@@ -92,6 +190,9 @@ Material::Material (const MaterialOptions& options)
 {
 	topology = options.topology;
 
+	glsl100es_code_vertex = options.glsl100es_code_vertex;
+	glsl100es_code_fragment = options.glsl100es_code_fragment;
+
 	Material::instances.push_back(this);
 }
 
@@ -99,15 +200,18 @@ Material::Material (const MaterialOptions&& options)
 {
 	topology = options.topology;
 
+	glsl100es_code_vertex = options.glsl100es_code_vertex;
+	glsl100es_code_fragment = options.glsl100es_code_fragment;
+
 	Material::instances.push_back(this);
 }
 
-Material* Material::New (const Topology topology)
-{
-	Material* material { new Material { { .topology = topology } } };
+// Material* Material::New (const Topology topology)
+// {
+// 	Material* material { new Material { { .topology = topology } } };
 
-	return material;
-}
+// 	return material;
+// }
 
 void Material::destroy (void)
 {
@@ -116,6 +220,24 @@ void Material::destroy (void)
 		delete Material::instances[i];
 	}
 }
+
+void Material::injectUniform (Uniform& uniform)
+{
+	uniforms.push_back(&uniform);
+}
+
+void Material::injectUniform (Uniform&& uniform)
+{
+	LOG(uniform.object_addr)
+	uniforms.push_back(&uniform);
+}
+
+void Material::injectUniform (Uniform* uniform)
+{
+	uniforms.push_back(uniform);
+}
+
+
 
 struct SceneObject
 {
@@ -181,10 +303,12 @@ void Scene::addObject (SceneObject* object)
 
 Scene* scene {};
 Material* material {};
+Material* material2 {};
 SceneObject* object {};
 SceneObject* object2 {};
+XGK::MATH::Orbit* orbit;
 
-void destroy (void)
+extern "C" void destroy (void)
 {
 	delete object;
 	delete material;
@@ -194,7 +318,21 @@ void destroy (void)
 int main (void)
 {
 	scene = new Scene;
-	material = new Material { { .topology = Topology::TRIANGLES } };
+	material = new Material {{ .topology = Topology::TRIANGLES }};
+
+	material2 = new Material
+	{{
+		.topology = Topology::TRIANGLES,
+
+		.glsl100es_code_fragment =
+			R"(
+				void main (void)
+				{
+					gl_FragColor = vec4(0.0, 1.0, 0.0, 1.0);
+				}
+			)",
+	}};
+
 	object = new SceneObject;
 	object2 = new SceneObject;
 
@@ -209,6 +347,23 @@ int main (void)
 
 	scene->addObject(*object);
 	scene->addObject(*object2);
+
+	orbit = new XGK::MATH::Orbit;
+
+	orbit->object.setTransZ(10.0f);
+	orbit->update();
+
+	orbit->projection_matrix.makeProjPersp(45.0f, 800.0f / 600.0f, 1.0f, 2000.0f, 1.0f);
+
+
+
+	material->injectUniform(new Uniform { .object_addr = &(orbit->projection_matrix), .name = "projection_matrix" });
+	material->injectUniform(new Uniform { .object_addr = &(orbit->view_matrix), .name = "view_matrix" });
+
+	material2->injectUniform(new Uniform { .object_addr = &(orbit->projection_matrix), .name = "projection_matrix" });
+	material2->injectUniform(new Uniform { .object_addr = &(orbit->view_matrix), .name = "view_matrix" });
+
+
 
 	return 0;
 }
