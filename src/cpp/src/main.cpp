@@ -65,14 +65,105 @@ struct Uniform
 	void* object_addr {};
 
 	std::string name { "view_matrix" };
+
+	size_t block_index {};
 };
+
+
+
+struct UniformBlockOptions
+{
+	size_t binding {};
+
+	std::string name {};
+};
+
+
+
+struct UniformBlock
+{
+	static std::vector<UniformBlock*> instances;
+
+	static void destroy (void);
+
+
+
+	// UniformBlock () = default;
+	UniformBlock (void);
+	UniformBlock (const UniformBlockOptions&);
+	UniformBlock (const UniformBlockOptions&&);
+	UniformBlock (const UniformBlockOptions*);
+
+
+
+	size_t binding {};
+
+	std::string name {};
+
+	std::vector<Uniform*> uniforms {};
+
+
+
+	void injectUniform (Uniform&);
+	void injectUniform (Uniform&&);
+	void injectUniform (Uniform*);
+};
+
+UniformBlock::UniformBlock (void)
+{
+	UniformBlock::instances.push_back(this);
+}
+
+UniformBlock::UniformBlock (const UniformBlockOptions& options)
+{
+	binding = options.binding;
+	name = options.name;
+
+	UniformBlock::instances.push_back(this);
+}
+
+UniformBlock::UniformBlock (const UniformBlockOptions&& options)
+{
+	binding = options.binding;
+	name = options.name;
+
+	UniformBlock::instances.push_back(this);
+}
+
+void UniformBlock::destroy (void)
+{
+	for (std::size_t i {}; i < UniformBlock::instances.size(); ++i)
+	{
+		delete UniformBlock::instances[i];
+	}
+}
+
+void UniformBlock::injectUniform (Uniform& uniform)
+{
+	uniforms.push_back(&uniform);
+}
+
+void UniformBlock::injectUniform (Uniform&& uniform)
+{
+	uniforms.push_back(&uniform);
+}
+
+void UniformBlock::injectUniform (Uniform* uniform)
+{
+	uniforms.push_back(uniform);
+}
+
+
 
 struct MaterialOptions
 {
-	Topology topology {};
+	Topology topology { Topology::TRIANGLES };
 
 	std::string glsl100es_code_vertex
 	{R"(
+		precision highp int;
+		precision highp float;
+
 		attribute vec3 a_position;
 
 		uniform mat4 projection_matrix;
@@ -86,6 +177,9 @@ struct MaterialOptions
 
 	std::string glsl100es_code_fragment
 	{R"(
+		precision highp int;
+		precision highp float;
+
 		void main (void)
 		{
 			gl_FragColor = vec4(0.25, 0, 0, 1.0);
@@ -94,19 +188,34 @@ struct MaterialOptions
 
 	std::string glsl300es_code_vertex
 	{R"(
-		#version 300es
+		#version 300 es
+
+		precision highp int;
+		precision highp float;
+
+		uniform mat4 projection_matrix;
+		uniform mat4 view_matrix;
+
+		layout (binding = 0) uniform Camera
+		{
+			mat4 projection_matrix;
+			mat4 view_matrix;
+		} camera;
 
 		layout (location = 0) in vec3 a_position;
 
 		void main (void)
 		{
-			gl_Position = vec4(a_position, 1.0f);
+			gl_Position = projection_matrix * view_matrix * vec4(a_position, 1.0f);
 		}
 	)"};
 
 	std::string glsl300es_code_fragment
 	{R"(
-		#version 300es
+		#version 300 es
+
+		precision highp int;
+		precision highp float;
 
 		layout (location = 0) out vec4 fragment_color;
 
@@ -117,11 +226,11 @@ struct MaterialOptions
 	)"};
 };
 
+
+
 struct Material
 {
 	static std::vector<Material*> instances;
-
-	// static Material* New (const Topology);
 
 	static void destroy (void);
 
@@ -135,10 +244,13 @@ struct Material
 
 
 
-	Topology topology { Topology::POINTS };
+	Topology topology { Topology::TRIANGLES };
 
 	std::string glsl100es_code_vertex
 	{R"(
+		precision highp int;
+		precision highp float;
+
 		attribute vec3 a_position;
 
 		uniform mat4 projection_matrix;
@@ -152,6 +264,9 @@ struct Material
 
 	std::string glsl100es_code_fragment
 	{R"(
+		precision highp int;
+		precision highp float;
+
 		void main (void)
 		{
 			gl_FragColor = vec4(0.25, 0, 0, 1.0);
@@ -160,19 +275,34 @@ struct Material
 
 	std::string glsl300es_code_vertex
 	{R"(
-		#version 300es
+		#version 300 es
+
+		precision highp int;
+		precision highp float;
 
 		layout (location = 0) in vec3 a_position;
 
+		uniform mat4 projection_matrix;
+		uniform mat4 view_matrix;
+
+		layout (binding = 0) uniform Camera
+		{
+			mat4 projection_matrix;
+			mat4 view_matrix;
+		} camera;
+
 		void main (void)
 		{
-			gl_Position = vec4(a_position, 1.0f);
+			gl_Position = projection_matrix * view_matrix * vec4(a_position, 1.0f);
 		}
 	)"};
 
 	std::string glsl300es_code_fragment
 	{R"(
-		#version 300es
+		#version 300 es
+
+		precision highp int;
+		precision highp float;
 
 		layout (location = 0) out vec4 fragment_color;
 
@@ -184,11 +314,18 @@ struct Material
 
 	std::vector<Uniform*> uniforms {};
 
+	std::vector<UniformBlock*> uniform_blocks {};
 
 
+
+	// const Uniform& ?
 	void injectUniform (Uniform&);
 	void injectUniform (Uniform&&);
 	void injectUniform (Uniform*);
+
+	void injectUniformBlock (UniformBlock&);
+	void injectUniformBlock (UniformBlock&&);
+	void injectUniformBlock (UniformBlock*);
 };
 
 Material::Material (void)
@@ -202,6 +339,8 @@ Material::Material (const MaterialOptions& options)
 
 	glsl100es_code_vertex = options.glsl100es_code_vertex;
 	glsl100es_code_fragment = options.glsl100es_code_fragment;
+	glsl300es_code_vertex = options.glsl100es_code_vertex;
+	glsl300es_code_fragment = options.glsl100es_code_fragment;
 
 	Material::instances.push_back(this);
 }
@@ -212,16 +351,11 @@ Material::Material (const MaterialOptions&& options)
 
 	glsl100es_code_vertex = options.glsl100es_code_vertex;
 	glsl100es_code_fragment = options.glsl100es_code_fragment;
+	glsl300es_code_vertex = options.glsl100es_code_vertex;
+	glsl300es_code_fragment = options.glsl100es_code_fragment;
 
 	Material::instances.push_back(this);
 }
-
-// Material* Material::New (const Topology topology)
-// {
-// 	Material* material { new Material { { .topology = topology } } };
-
-// 	return material;
-// }
 
 void Material::destroy (void)
 {
@@ -238,13 +372,27 @@ void Material::injectUniform (Uniform& uniform)
 
 void Material::injectUniform (Uniform&& uniform)
 {
-	LOG(uniform.object_addr)
 	uniforms.push_back(&uniform);
 }
 
 void Material::injectUniform (Uniform* uniform)
 {
 	uniforms.push_back(uniform);
+}
+
+void Material::injectUniformBlock (UniformBlock& uniform_block)
+{
+	uniform_blocks.push_back(&uniform_block);
+}
+
+void Material::injectUniformBlock (UniformBlock&& uniform_block)
+{
+	uniform_blocks.push_back(&uniform_block);
+}
+
+void Material::injectUniformBlock (UniformBlock* uniform_block)
+{
+	uniform_blocks.push_back(uniform_block);
 }
 
 
@@ -314,6 +462,7 @@ void Scene::addObject (SceneObject* object)
 Scene* scene {};
 Material* material {};
 Material* material2 {};
+UniformBlock* uniform_block {};
 SceneObject* object {};
 SceneObject* object2 {};
 XGK::MATH::Orbit* orbit;
@@ -336,12 +485,32 @@ int main (void)
 
 		.glsl100es_code_fragment =
 			R"(
+				precision highp int;
+				precision highp float;
+
 				void main (void)
 				{
 					gl_FragColor = vec4(0.0, 1.0, 0.0, 1.0);
 				}
 			)",
+
+		.glsl300es_code_fragment =
+			R"(
+				#version 300 es
+
+				precision highp int;
+				precision highp float;
+
+				layout (location = 0) out vec4 fragment_color;
+
+				void main (void)
+				{
+					fragment_color = vec4(0.0, 1.0, 0.0, 1.0);
+				}
+			)",
 	}};
+
+	uniform_block = new UniformBlock{{ .binding = 0, .name= "Camera"  }};
 
 	object = new SceneObject;
 	object2 = new SceneObject;
@@ -372,6 +541,12 @@ int main (void)
 
 	material2->injectUniform(new Uniform { .object_addr = &(orbit->projection_matrix), .name = "projection_matrix" });
 	material2->injectUniform(new Uniform { .object_addr = &(orbit->view_matrix), .name = "view_matrix" });
+
+	uniform_block->injectUniform(new Uniform { .object_addr = &(orbit->projection_matrix), .block_index = 0 });
+	uniform_block->injectUniform(new Uniform { .object_addr = &(orbit->view_matrix), .block_index = 16});
+
+	material->injectUniformBlock(uniform_block);
+	material2->injectUniformBlock(uniform_block);
 
 
 
