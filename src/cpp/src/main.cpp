@@ -19,22 +19,32 @@ extern "C" std::size_t getTime (void);
 
 // use templates
 
-extern "C" void* getVectorData (std::vector<float>& v)
+extern "C" void* getStdVectorDataFloat (std::vector<float>& v)
 {
 	return v.data();
 }
 
-extern "C" std::size_t getVectorSize (std::vector<float>& v)
+extern "C" std::size_t getStdVectorSizeFloat (std::vector<float>& v)
 {
 	return v.size();
 }
 
-extern "C" void* getStringData (std::string& s)
+extern "C" void* getStdVectorDataAddr (std::vector<void*>& v)
+{
+	return v.data();
+}
+
+extern "C" std::size_t getStdVectorSizeAddr (std::vector<void*>& v)
+{
+	return v.size();
+}
+
+extern "C" void* getStdStringData (std::string& s)
 {
 	return s.data();
 }
 
-extern "C" std::size_t getStringSize (std::string& s)
+extern "C" std::size_t getStdStringSize (std::string& s)
 {
 	return s.size();
 }

@@ -24,7 +24,7 @@ window.addEventListener
 
 		const gl = webgl_renderer._context;
 
-		LOG(wasm.Floatv(wasm.Addr(wasm.exports.orbit.value), 16, 16))
+
 
 		const scene = new webgl_renderer.Scene(wasm.Addr(wasm.exports.scene.value));
 		const material = new webgl_renderer.Material(wasm.Addr(wasm.exports.material.value));
@@ -32,12 +32,6 @@ window.addEventListener
 		const _object = new webgl_renderer.Object(wasm.Addr(wasm.exports.object.value));
 		const object2 = new webgl_renderer.Object(wasm.Addr(wasm.exports.object2.value));
 		const orbit = wasm.Addr(wasm.exports.orbit.value);
-
-		LOG(scene);
-		LOG(material);
-		LOG(material2);
-		LOG(_object);
-		LOG(object2);
 
 
 
@@ -53,6 +47,11 @@ window.addEventListener
 
 		const render = () =>
 		{
+			wasm.exports._ZN3XGK4MATH5Orbit7rotate2Eff(orbit, 0.01, 0.01);
+			wasm.exports._ZN3XGK4MATH5Orbit6updateEv(orbit);
+
+
+
 			gl.clear(gl.COLOR_BUFFER_BIT);
 
 			material.use();
@@ -67,21 +66,5 @@ window.addEventListener
 		};
 
 		render();
-
-
-
-		setInterval
-		(
-			() =>
-			{
-				// wasm.exports._ZN3XGK4MATH5Orbit6rotateEv();
-				wasm.exports._ZN3XGK4MATH5Orbit7rotate2Eff(orbit, 0.01, 0.01);
-				wasm.exports._ZN3XGK4MATH5Orbit6updateEv(orbit);
-			},
-
-			0,
-		);
-
-		// setTimeout(wasm.exports.destroy, 5000);
 	},
 );
