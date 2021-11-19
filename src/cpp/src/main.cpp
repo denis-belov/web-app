@@ -193,10 +193,7 @@ struct MaterialOptions
 		precision highp int;
 		precision highp float;
 
-		uniform mat4 projection_matrix;
-		uniform mat4 view_matrix;
-
-		layout (binding = 0) uniform Camera
+		layout (std140) uniform Camera
 		{
 			mat4 projection_matrix;
 			mat4 view_matrix;
@@ -206,7 +203,7 @@ struct MaterialOptions
 
 		void main (void)
 		{
-			gl_Position = projection_matrix * view_matrix * vec4(a_position, 1.0f);
+			gl_Position = camera.projection_matrix * camera.view_matrix * vec4(a_position, 1.0f);
 		}
 	)"};
 
@@ -280,10 +277,7 @@ struct Material
 		precision highp int;
 		precision highp float;
 
-		layout (location = 0) in vec3 a_position;
-
-		uniform mat4 projection_matrix;
-		uniform mat4 view_matrix;
+		layout (std140) in vec3 a_position;
 
 		layout (binding = 0) uniform Camera
 		{
@@ -293,7 +287,7 @@ struct Material
 
 		void main (void)
 		{
-			gl_Position = projection_matrix * view_matrix * vec4(a_position, 1.0f);
+			gl_Position = camera.projection_matrix * camera.view_matrix * vec4(a_position, 1.0f);
 		}
 	)"};
 
@@ -318,6 +312,26 @@ struct Material
 
 
 
+	std::string wgsl_code_vertex
+	{R"(
+		[[stage(fragment)]]
+		fn main() -> [[location(0)]] vec4<f32>
+		{
+			return vec4<f32>(0.4, 0.4, 0.8, 1.0);
+		}
+	)"};
+
+	std::string wgsl_code_fragment
+	{R"(
+		[[stage(fragment)]]
+		fn main() -> [[location(0)]] vec4<f32>
+		{
+			return vec4<f32>(0.25, 0, 0, 1.0);
+		}
+	)"};
+
+
+
 	// const Uniform& ?
 	void injectUniform (Uniform&);
 	void injectUniform (Uniform&&);
@@ -339,8 +353,8 @@ Material::Material (const MaterialOptions& options)
 
 	glsl100es_code_vertex = options.glsl100es_code_vertex;
 	glsl100es_code_fragment = options.glsl100es_code_fragment;
-	glsl300es_code_vertex = options.glsl100es_code_vertex;
-	glsl300es_code_fragment = options.glsl100es_code_fragment;
+	glsl300es_code_vertex = options.glsl300es_code_vertex;
+	glsl300es_code_fragment = options.glsl300es_code_fragment;
 
 	Material::instances.push_back(this);
 }
@@ -351,8 +365,8 @@ Material::Material (const MaterialOptions&& options)
 
 	glsl100es_code_vertex = options.glsl100es_code_vertex;
 	glsl100es_code_fragment = options.glsl100es_code_fragment;
-	glsl300es_code_vertex = options.glsl100es_code_vertex;
-	glsl300es_code_fragment = options.glsl100es_code_fragment;
+	glsl300es_code_vertex = options.glsl300es_code_vertex;
+	glsl300es_code_fragment = options.glsl300es_code_fragment;
 
 	Material::instances.push_back(this);
 }
@@ -397,6 +411,7 @@ void Material::injectUniformBlock (UniformBlock* uniform_block)
 
 
 
+// add instances
 struct SceneObject
 {
 	std::size_t scene_vertex_data_offset {};
@@ -459,6 +474,9 @@ void Scene::addObject (SceneObject* object)
 
 
 
+float window_width {};
+float window_height {};
+
 Scene* scene {};
 Material* material {};
 Material* material2 {};
@@ -466,6 +484,15 @@ UniformBlock* uniform_block {};
 SceneObject* object {};
 SceneObject* object2 {};
 XGK::MATH::Orbit* orbit;
+
+// Material* materials [1000] {};
+// SceneObject* objects [1000] {};
+
+extern "C" void setWindowSize (const float _window_width, const float _window_height)
+{
+	window_width = _window_width;
+	window_height = _window_height;
+}
 
 extern "C" void destroy (void)
 {
@@ -532,7 +559,7 @@ int main (void)
 	orbit->object.setTransZ(10.0f);
 	orbit->update();
 
-	orbit->projection_matrix.makeProjPersp(45.0f, 800.0f / 600.0f, 1.0f, 2000.0f, 1.0f);
+	orbit->projection_matrix.makeProjPersp(45.0f, window_width / window_height, 1.0f, 2000.0f, 1.0f);
 
 
 
@@ -547,6 +574,24 @@ int main (void)
 
 	material->injectUniformBlock(uniform_block);
 	material2->injectUniformBlock(uniform_block);
+
+
+
+	// for (size_t i {}; i < 1000; ++i)
+	// {
+	// 	materials[i] = new Material {{ .topology = Topology::TRIANGLES }};
+
+	// 	materials[i]->injectUniform(new Uniform { .object_addr = &(orbit->projection_matrix), .name = "projection_matrix" });
+	// 	materials[i]->injectUniform(new Uniform { .object_addr = &(orbit->view_matrix), .name = "view_matrix" });
+
+	// 	materials[i]->injectUniformBlock(uniform_block);
+
+
+
+	// 	objects[i] = new SceneObject;
+
+	// 	scene->addObject(objects[i]);
+	// }
 
 
 

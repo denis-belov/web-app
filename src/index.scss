@@ -1,7 +1,7 @@
 body
 {
 	margin: 0;
-	background-color: black;
+	// background-color: black;
 }
 
 canvas
@@ -9,6 +9,27 @@ canvas
 	position: absolute;
 	left: 0;
 	top: 0;
-	width: 800px;
-	height: 600px;
+	// width: 800px;
+	// height: 600px;
+}
+
+.canvas-wrapper
+{
+	position: absolute;
+	width: 50%;
+	height: 100%;
+	left: 0;
+	top: 0;
+
+	&:nth-of-type(2)
+	{
+		left: 50%;
+	}
+}
+
+.fps
+{
+	position: absolute;
+	left: 0;
+	top: 0;
 }
