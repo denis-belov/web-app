@@ -64,10 +64,19 @@ struct Uniform
 {
 	void* object_addr {};
 
-	std::string name { "view_matrix" };
+	std::string name {};
 
 	size_t block_index {};
 };
+
+struct UniformOffsets
+{
+	size_t object_addr = offsetof(Uniform, object_addr);
+	size_t name = offsetof(Uniform, name);
+	size_t block_index = offsetof(Uniform, block_index);
+};
+
+UniformOffsets uniform_offsets;
 
 
 
@@ -108,6 +117,15 @@ struct UniformBlock
 	void injectUniform (Uniform&&);
 	void injectUniform (Uniform*);
 };
+
+struct UniformBlockOffsets
+{
+	size_t binding = offsetof(UniformBlock, binding);
+	size_t name = offsetof(UniformBlock, name);
+	size_t uniforms = offsetof(UniformBlock, uniforms);
+};
+
+UniformBlockOffsets uniform_block_offsets;
 
 UniformBlock::UniformBlock (void)
 {
@@ -164,14 +182,14 @@ struct MaterialOptions
 		precision highp int;
 		precision highp float;
 
-		attribute vec3 a_position;
+		attribute vec3 in_position;
 
 		uniform mat4 projection_matrix;
 		uniform mat4 view_matrix;
 
 		void main (void)
 		{
-			gl_Position = projection_matrix * view_matrix * vec4(a_position, 1.0);
+			gl_Position = vec4(in_position, 1.0);
 		}
 	)"};
 
@@ -193,17 +211,17 @@ struct MaterialOptions
 		precision highp int;
 		precision highp float;
 
+		layout (location = 0) in vec3 in_position;
+
 		layout (std140) uniform Camera
 		{
 			mat4 projection_matrix;
 			mat4 view_matrix;
 		} camera;
 
-		layout (location = 0) in vec3 a_position;
-
 		void main (void)
 		{
-			gl_Position = camera.projection_matrix * camera.view_matrix * vec4(a_position, 1.0f);
+			gl_Position = camera.projection_matrix * camera.view_matrix * vec4(in_position, 1.0f);
 		}
 	)"};
 
@@ -219,6 +237,31 @@ struct MaterialOptions
 		void main (void)
 		{
 			fragment_color = vec4(0.25f, 0, 0, 1.0f);
+		}
+	)"};
+
+	std::string wgsl_code_vertex
+	{R"(
+		struct VertexIn
+		{
+			[[location(0)]] position : vec3<f32>;
+		};
+
+		[[stage(vertex)]]
+
+		fn main(input : VertexIn) -> [[location(0)]] vec4<f32>
+		{
+			return vec4<f32>(input.position, 1.0);
+		}
+	)"};
+
+	std::string wgsl_code_fragment
+	{R"(
+		[[stage(fragment)]]
+
+		fn main() -> [[location(0)]] vec4<f32>
+		{
+			return vec4<f32>(0.0, 1.0, 0.0, 1.0);
 		}
 	)"};
 };
@@ -241,94 +284,18 @@ struct Material
 
 
 
-	Topology topology { Topology::TRIANGLES };
+	Topology topology {};
 
-	std::string glsl100es_code_vertex
-	{R"(
-		precision highp int;
-		precision highp float;
-
-		attribute vec3 a_position;
-
-		uniform mat4 projection_matrix;
-		uniform mat4 view_matrix;
-
-		void main (void)
-		{
-			gl_Position = vec4(a_position, 1.0);
-		}
-	)"};
-
-	std::string glsl100es_code_fragment
-	{R"(
-		precision highp int;
-		precision highp float;
-
-		void main (void)
-		{
-			gl_FragColor = vec4(0.25, 0, 0, 1.0);
-		}
-	)"};
-
-	std::string glsl300es_code_vertex
-	{R"(
-		#version 300 es
-
-		precision highp int;
-		precision highp float;
-
-		layout (std140) in vec3 a_position;
-
-		layout (binding = 0) uniform Camera
-		{
-			mat4 projection_matrix;
-			mat4 view_matrix;
-		} camera;
-
-		void main (void)
-		{
-			gl_Position = camera.projection_matrix * camera.view_matrix * vec4(a_position, 1.0f);
-		}
-	)"};
-
-	std::string glsl300es_code_fragment
-	{R"(
-		#version 300 es
-
-		precision highp int;
-		precision highp float;
-
-		layout (location = 0) out vec4 fragment_color;
-
-		void main (void)
-		{
-			fragment_color = vec4(0.25f, 0, 0, 1.0f);
-		}
-	)"};
+	std::string glsl100es_code_vertex {};
+	std::string glsl100es_code_fragment {};
+	std::string glsl300es_code_vertex {};
+	std::string glsl300es_code_fragment {};
+	std::string wgsl_code_vertex {};
+	std::string wgsl_code_fragment {};
 
 	std::vector<Uniform*> uniforms {};
 
 	std::vector<UniformBlock*> uniform_blocks {};
-
-
-
-	std::string wgsl_code_vertex
-	{R"(
-		[[stage(fragment)]]
-		fn main() -> [[location(0)]] vec4<f32>
-		{
-			return vec4<f32>(0.4, 0.4, 0.8, 1.0);
-		}
-	)"};
-
-	std::string wgsl_code_fragment
-	{R"(
-		[[stage(fragment)]]
-		fn main() -> [[location(0)]] vec4<f32>
-		{
-			return vec4<f32>(0.25, 0, 0, 1.0);
-		}
-	)"};
 
 
 
@@ -342,8 +309,34 @@ struct Material
 	void injectUniformBlock (UniformBlock*);
 };
 
+struct MaterialOffsets
+{
+	size_t topology = offsetof(Material, topology);
+	size_t glsl100es_code_vertex = offsetof(Material, glsl100es_code_vertex);
+	size_t glsl100es_code_fragment = offsetof(Material, glsl100es_code_fragment);
+	size_t glsl300es_code_vertex = offsetof(Material, glsl300es_code_vertex);
+	size_t glsl300es_code_fragment = offsetof(Material, glsl300es_code_fragment);
+	size_t wgsl_code_vertex = offsetof(Material, wgsl_code_vertex);
+	size_t wgsl_code_fragment = offsetof(Material, wgsl_code_fragment);
+	size_t uniforms = offsetof(Material, uniforms);
+	size_t uniform_blocks = offsetof(Material, uniform_blocks);
+};
+
+MaterialOffsets material_offsets;
+
 Material::Material (void)
 {
+	const MaterialOptions options {};
+
+	topology = options.topology;
+
+	glsl100es_code_vertex = options.glsl100es_code_vertex;
+	glsl100es_code_fragment = options.glsl100es_code_fragment;
+	glsl300es_code_vertex = options.glsl300es_code_vertex;
+	glsl300es_code_fragment = options.glsl300es_code_fragment;
+	wgsl_code_vertex = options.wgsl_code_vertex;
+	wgsl_code_fragment = options.wgsl_code_fragment;
+
 	Material::instances.push_back(this);
 }
 
@@ -355,6 +348,8 @@ Material::Material (const MaterialOptions& options)
 	glsl100es_code_fragment = options.glsl100es_code_fragment;
 	glsl300es_code_vertex = options.glsl300es_code_vertex;
 	glsl300es_code_fragment = options.glsl300es_code_fragment;
+	wgsl_code_vertex = options.wgsl_code_vertex;
+	wgsl_code_fragment = options.wgsl_code_fragment;
 
 	Material::instances.push_back(this);
 }
@@ -367,6 +362,8 @@ Material::Material (const MaterialOptions&& options)
 	glsl100es_code_fragment = options.glsl100es_code_fragment;
 	glsl300es_code_vertex = options.glsl300es_code_vertex;
 	glsl300es_code_fragment = options.glsl300es_code_fragment;
+	wgsl_code_vertex = options.wgsl_code_vertex;
+	wgsl_code_fragment = options.wgsl_code_fragment;
 
 	Material::instances.push_back(this);
 }
@@ -533,6 +530,16 @@ int main (void)
 				void main (void)
 				{
 					fragment_color = vec4(0.0, 1.0, 0.0, 1.0);
+				}
+			)",
+
+		.wgsl_code_fragment=
+			R"(
+				[[stage(fragment)]]
+
+				fn main() -> [[location(0)]] vec4<f32>
+				{
+					return vec4<f32>(0.0, 1.0, 0.0, 1.0);
 				}
 			)",
 	}};

@@ -58,7 +58,7 @@ window.addEventListener
 
 
 		{
-			const webgl_renderer = new WebGLRenderer(wasm, document.querySelectorAll('canvas')[0], 'webgl', window.innerWidth / 2, window.innerHeight);
+			const webgl_renderer = new WebGLRenderer(wasm, document.querySelectorAll('canvas')[0], 'webgl', window.innerWidth / 3, window.innerHeight);
 
 			const gl = webgl_renderer._context;
 
@@ -151,7 +151,7 @@ window.addEventListener
 
 
 		{
-			const webgl_renderer = new WebGLRenderer(wasm, document.querySelectorAll('canvas')[1], 'webgl2', window.innerWidth / 2, window.innerHeight);
+			const webgl_renderer = new WebGLRenderer(wasm, document.querySelectorAll('canvas')[1], 'webgl2', window.innerWidth / 3, window.innerHeight);
 
 			const gl = webgl_renderer._context;
 
@@ -247,39 +247,82 @@ window.addEventListener
 
 
 		{
-			const webggpu_renderer = new WebGPURenderer(wasm, null,  window.innerWidth / 2, window.innerHeight);
+			const webgpu_renderer = new WebGPURenderer(wasm, document.querySelectorAll('canvas')[2], window.innerWidth / 3, window.innerHeight);
 
-			LOG(webggpu_renderer)
-
-			await webggpu_renderer.init();
+			await webgpu_renderer.init();
 
 
 
-			// let time = Date.now();
-
-			// const [ , fps ] = document.querySelectorAll('.fps');
-
-			// let fps_counter = 0;
-
-			// const render = () =>
-			// {
-			// 	requestAnimationFrame(render);
+			const scene = new webgpu_renderer.Scene(scene_addr);
+			const material = new webgpu_renderer.Material(material_addr);
 
 
 
-			// 	if (Math.floor((Date.now() - time) * 0.001))
-			// 	{
-			// 		fps.innerHTML = fps_counter;
+			const b =
+				webgpu_renderer.device.createBuffer
+				({
+					size: scene.vertex_data.byteLength,
+					usage: window.GPUBufferUsage.VERTEX,
+					mappedAtCreation: true,
+				});
 
-			// 		fps_counter = 0;
+			const scene_vertex_data_buffer_view_f32 =
+				new Float32Array(b.getMappedRange(0, scene.vertex_data.byteLength));
 
-			// 		time = Date.now();
-			// 	}
+			scene_vertex_data_buffer_view_f32.set(scene.vertex_data);
 
-			// 	++fps_counter;
-			// };
+			b.unmap();
 
-			// render();
+
+
+			let time = Date.now();
+
+			const [ , fps ] = document.querySelectorAll('.fps');
+
+			let fps_counter = 0;
+
+			const render = () =>
+			{
+				const render_pass_encoder =
+					webgpu_renderer.command_encoder.beginRenderPass
+					({
+						colorAttachments:
+						[
+							{
+								view: webgpu_renderer.render_attachment_view,
+								// GPUTextureView resolveTarget;
+
+								loadValue: { r: 0, g: 0, b: 0, a: 1 },
+								storeOp: 'store',
+							},
+						],
+					});
+
+				render_pass_encoder.setPipeline(material.pipeline);
+				render_pass_encoder.setVertexBuffer(0, b, 0, scene.vertex_data.byteLength);
+				render_pass_encoder.draw(9, 1, 0, 0);
+
+				const command_buffer = webgpu_renderer.command_encoder.finish();
+
+				// LOG(command_buffer)
+
+				requestAnimationFrame(render);
+
+
+
+				if (Math.floor((Date.now() - time) * 0.001))
+				{
+					fps.innerHTML = fps_counter;
+
+					fps_counter = 0;
+
+					time = Date.now();
+				}
+
+				++fps_counter;
+			};
+
+			render();
 		}
 	},
 );
