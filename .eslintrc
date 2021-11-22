@@ -50,6 +50,7 @@
 		"max-depth": 0,
 		"no-tabs": 0,
 		"no-console": 0,
+		"no-bitwise": 0,
 		"array-element-newline": 0,
 		"array-bracket-newline": 0,
 		"camelcase": 0,

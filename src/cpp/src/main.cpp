@@ -242,26 +242,34 @@ struct MaterialOptions
 
 	std::string wgsl_code_vertex
 	{R"(
+		[[block]]
 		struct VertexIn
 		{
-			[[location(0)]] position : vec3<f32>;
+			[[location(0)]] pos : vec3<f32>;
+		};
+
+		struct VertexOut
+		{
+			[[builtin(position)]] pos : vec4<f32>;
 		};
 
 		[[stage(vertex)]]
-
-		fn main(input : VertexIn) -> [[location(0)]] vec4<f32>
+		fn main(input : VertexIn) -> VertexOut
 		{
-			return vec4<f32>(input.position, 1.0);
+			var output : VertexOut;
+
+			output.pos = vec4<f32>(input.pos, 1.0);
+
+			return output;
 		}
 	)"};
 
 	std::string wgsl_code_fragment
 	{R"(
 		[[stage(fragment)]]
-
 		fn main() -> [[location(0)]] vec4<f32>
 		{
-			return vec4<f32>(0.0, 1.0, 0.0, 1.0);
+			return vec4<f32>(1.0, 1.0, 0.0, 1.0);
 		}
 	)"};
 };
@@ -416,9 +424,9 @@ struct SceneObject
 
 	std::vector<float> vertex_data
 	{
-		-1.0f, -1.0f, 0.0f,
-		-1.0f, 1.0f, 0.0f,
 		1.0f, 1.0f, 0.0f,
+		-1.0f, 1.0f, 0.0f,
+		-1.0f, -1.0f, 0.0f,
 	};
 
 	// bool indexed;
@@ -533,13 +541,12 @@ int main (void)
 				}
 			)",
 
-		.wgsl_code_fragment=
+		.wgsl_code_fragment =
 			R"(
 				[[stage(fragment)]]
-
 				fn main() -> [[location(0)]] vec4<f32>
 				{
-					return vec4<f32>(0.0, 1.0, 0.0, 1.0);
+					return vec4<f32>(1.0, 1.0, 1.0, 1.0);
 				}
 			)",
 	}};
