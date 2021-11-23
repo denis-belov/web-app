@@ -246,22 +246,55 @@ struct MaterialOptions
 		struct VertexIn
 		{
 			[[location(0)]] pos : vec3<f32>;
+			[[builtin(vertex_index)]] vi : u32;
 		};
 
+		[[block]]
 		struct VertexOut
 		{
 			[[builtin(position)]] pos : vec4<f32>;
 		};
 
 		[[stage(vertex)]]
-		fn main(input : VertexIn) -> VertexOut
+		// fn main(input : VertexIn) -> VertexOut
+		fn main(input : VertexIn) -> [[builtin(position)]] vec4<f32>
 		{
 			var output : VertexOut;
 
-			output.pos = vec4<f32>(input.pos, 1.0);
+			// output.pos = vec4<f32>(input.pos, 1.0);
 
-			return output;
+			// return output;
+
+			var pos = array<vec2<f32>, 3>(
+					vec2<f32>(0.0, 0.5),
+					vec2<f32>(-0.5, -0.5),
+					vec2<f32>(0.5, -0.5));
+
+			// if (input.vi == u32(0))
+			// {
+			// 	return vec4<f32>(input.pos, 1.0);
+			// }
+			// else
+			// {
+			// 	if (input.vi == u32(1))
+			// 	{
+			// 		return vec4<f32>(input.pos, 1.0);
+			// 	}
+			// }
+
+			return vec4<f32>(input.pos, 1.0);
 		}
+
+	// [[stage(vertex)]]
+	// fn main([[builtin(vertex_index)]] VertexIndex : u32)
+	// 		 -> [[builtin(position)]] vec4<f32> {
+	// 	var pos = array<vec2<f32>, 3>(
+	// 			vec2<f32>(0.0, 0.5),
+	// 			vec2<f32>(-0.5, -0.5),
+	// 			vec2<f32>(0.5, -0.5));
+
+	// 	return vec4<f32>(pos[VertexIndex], 0.0, 1.0);
+	// }
 	)"};
 
 	std::string wgsl_code_fragment

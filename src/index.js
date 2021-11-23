@@ -279,7 +279,8 @@ window.addEventListener
 			const c =
 				webgpu_renderer.device.createBuffer
 				({
-					size: scene.vertex_data.byteLength,
+					// size: scene.vertex_data.byteLength,
+					size: 36,
 
 					usage:
 
@@ -288,7 +289,9 @@ window.addEventListener
 				});
 
 			LOG(scene.vertex_data.buffer, new Float32Array(scene.vertex_data).buffer)
-			webgpu_renderer.device.queue.writeBuffer(c, 0, new Float32Array(scene.vertex_data).buffer, 0, 72);
+			webgpu_renderer.device.queue.writeBuffer(c, 0, new Float32Array([		-2.0, -1.0, 0.0,
+				0, 0.5, 0.0,
+				1.0, 1.0, 0.0]), 0, 9);
 
 
 
@@ -320,7 +323,8 @@ window.addEventListener
 					});
 
 				render_pass_encoder.setPipeline(material2.pipeline);
-				render_pass_encoder.setVertexBuffer(0, c, 0, scene.vertex_data.byteLength);
+				// render_pass_encoder.setVertexBuffer(0, c, 0, scene.vertex_data.byteLength);
+				render_pass_encoder.setVertexBuffer(0, c, 0, 36);
 				render_pass_encoder.draw(3, 1, 0, 0);
 				render_pass_encoder.endPass();
 
