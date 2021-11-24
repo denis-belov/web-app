@@ -259,13 +259,14 @@ struct MaterialOptions
 			view_matrix : mat4x4<f32>;
 		};
 
+		[[group(0), binding(0)]] var<uniform> camera2 : Camera;
 		[[group(1), binding(0)]] var<uniform> camera : Camera;
 
 		[[stage(vertex)]] fn main(input : VertexIn) -> VertexOut
 		{
 			var output : VertexOut;
 
-			output.pos = camera.projection_matrix * camera.view_matrix * vec4<f32>(input.pos, 1.0);
+			output.pos = camera.projection_matrix * camera2.view_matrix * vec4<f32>(input.pos, 1.0);
 
 			return output;
 		}

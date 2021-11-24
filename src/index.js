@@ -335,8 +335,8 @@ window.addEventListener
 
 
 			const scene = new webgpu_renderer.Scene(scene_addr);
-			const material = new webgpu_renderer.Material(material_addr, [ bind_group_layout, bind_group_layout ]);
-			const material2 = new webgpu_renderer.Material(material2_addr, [ bind_group_layout, bind_group_layout ]);
+			const material = new webgpu_renderer.Material(material_addr, [ bind_group_layout, bind_group_layout, bind_group_layout, bind_group_layout, bind_group_layout ]);
+			const material2 = new webgpu_renderer.Material(material2_addr, [ bind_group_layout, bind_group_layout, bind_group_layout, bind_group_layout, bind_group_layout ]);
 			const _object = new webgpu_renderer.Object(object_addr);
 			const object2 = new webgpu_renderer.Object(object2_addr);
 
@@ -389,6 +389,9 @@ window.addEventListener
 
 				webgpu_renderer.render_pass_encoder.setBindGroup(0, bind_group, []);
 				webgpu_renderer.render_pass_encoder.setBindGroup(1, bind_group, []);
+				webgpu_renderer.render_pass_encoder.setBindGroup(2, bind_group, []);
+				webgpu_renderer.render_pass_encoder.setBindGroup(3, bind_group, []);
+				// webgpu_renderer.render_pass_encoder.setBindGroup(4, bind_group, []);
 
 				material.use();
 
