@@ -253,9 +253,65 @@ window.addEventListener
 
 
 
-			const scene = new webgpu_renderer.Scene(scene_addr);
-			const material = new webgpu_renderer.Material(material_addr);
-			const material2 = new webgpu_renderer.Material(material2_addr);
+			const aa =
+				webgpu_renderer.device.createBuffer
+				({
+					size: 32 * 4,
+
+					usage:
+					(
+						window.GPUBufferUsage.COPY_DST |
+						window.GPUBufferUsage.UNIFORM
+					),
+				});
+
+			webgpu_renderer.device.queue.writeBuffer(aa, 0, new Float32Array([ 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1,   1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1 ]), 0, 32);
+
+
+
+			const bind_group_layout =
+				webgpu_renderer.device.createBindGroupLayout
+				({
+					entryCount: 1,
+
+					entries:
+					[
+						{
+							binding: 0,
+
+							visibility: window.GPUShaderStage.VERTEX,
+
+							buffer:
+							{
+								type: 'uniform',
+								hasDynamicOffset: false,
+								minBindingSize: 0,
+							},
+						},
+					],
+				});
+
+			const bind_group =
+				webgpu_renderer.device.createBindGroup
+				({
+					layout: bind_group_layout,
+
+					entry_count: 1,
+
+					entries:
+					[
+						{
+							binding: 0,
+
+							resource:
+							{
+								buffer: aa,
+								offset: 0,
+								size: 32 * 4,
+							},
+						},
+					],
+				});
 
 
 
@@ -276,22 +332,29 @@ window.addEventListener
 
 			// b.unmap();
 
+
+
+			const scene = new webgpu_renderer.Scene(scene_addr);
+			const material = new webgpu_renderer.Material(material_addr, [ bind_group_layout, bind_group_layout ]);
+			const material2 = new webgpu_renderer.Material(material2_addr, [ bind_group_layout, bind_group_layout ]);
+			const _object = new webgpu_renderer.Object(object_addr);
+			const object2 = new webgpu_renderer.Object(object2_addr);
+
+
+
 			const c =
 				webgpu_renderer.device.createBuffer
 				({
-					// size: scene.vertex_data.byteLength,
-					size: 36,
+					size: scene.vertex_data.byteLength,
 
 					usage:
-
+					(
 						window.GPUBufferUsage.COPY_DST |
-						window.GPUBufferUsage.VERTEX,
+						window.GPUBufferUsage.VERTEX
+					),
 				});
 
-			LOG(scene.vertex_data.buffer, new Float32Array(scene.vertex_data).buffer)
-			webgpu_renderer.device.queue.writeBuffer(c, 0, new Float32Array([		-2.0, -1.0, 0.0,
-				0, 0.5, 0.0,
-				1.0, 1.0, 0.0]), 0, 9);
+			webgpu_renderer.device.queue.writeBuffer(c, 0, scene.vertex_data, 0, scene.vertex_data.length);
 
 
 
@@ -307,7 +370,7 @@ window.addEventListener
 
 				const context_texture = webgpu_renderer._context.getCurrentTexture();
 
-				const render_pass_encoder =
+				webgpu_renderer.render_pass_encoder =
 					command_encoder.beginRenderPass
 					({
 						colorAttachments:
@@ -322,17 +385,24 @@ window.addEventListener
 						],
 					});
 
-				render_pass_encoder.setPipeline(material2.pipeline);
-				// render_pass_encoder.setVertexBuffer(0, c, 0, scene.vertex_data.byteLength);
-				render_pass_encoder.setVertexBuffer(0, c, 0, 36);
-				render_pass_encoder.draw(3, 1, 0, 0);
-				render_pass_encoder.endPass();
+				webgpu_renderer.render_pass_encoder.setVertexBuffer(0, c, 0, scene.vertex_data.byteLength);
+
+				webgpu_renderer.render_pass_encoder.setBindGroup(0, bind_group, []);
+				webgpu_renderer.render_pass_encoder.setBindGroup(1, bind_group, []);
+
+				material.use();
+
+				_object.draw();
+
+				material2.use();
+
+				object2.draw();
+
+				webgpu_renderer.render_pass_encoder.endPass();
 
 				const command_buffer = command_encoder.finish();
 
 				webgpu_renderer.device.queue.submit([ command_buffer ]);
-
-				// context_texture.destroy();
 
 
 

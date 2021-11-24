@@ -242,65 +242,38 @@ struct MaterialOptions
 
 	std::string wgsl_code_vertex
 	{R"(
-		[[block]]
-		struct VertexIn
+		[[block]] struct VertexIn
 		{
 			[[location(0)]] pos : vec3<f32>;
 			[[builtin(vertex_index)]] vi : u32;
 		};
 
-		[[block]]
-		struct VertexOut
+		[[block]] struct VertexOut
 		{
 			[[builtin(position)]] pos : vec4<f32>;
 		};
 
-		[[stage(vertex)]]
-		// fn main(input : VertexIn) -> VertexOut
-		fn main(input : VertexIn) -> [[builtin(position)]] vec4<f32>
+		[[block]] struct Camera
+		{
+			projection_matrix : mat4x4<f32>;
+			view_matrix : mat4x4<f32>;
+		};
+
+		[[group(1), binding(0)]] var<uniform> camera : Camera;
+
+		[[stage(vertex)]] fn main(input : VertexIn) -> VertexOut
 		{
 			var output : VertexOut;
 
-			// output.pos = vec4<f32>(input.pos, 1.0);
+			output.pos = camera.projection_matrix * camera.view_matrix * vec4<f32>(input.pos, 1.0);
 
-			// return output;
-
-			var pos = array<vec2<f32>, 3>(
-					vec2<f32>(0.0, 0.5),
-					vec2<f32>(-0.5, -0.5),
-					vec2<f32>(0.5, -0.5));
-
-			// if (input.vi == u32(0))
-			// {
-			// 	return vec4<f32>(input.pos, 1.0);
-			// }
-			// else
-			// {
-			// 	if (input.vi == u32(1))
-			// 	{
-			// 		return vec4<f32>(input.pos, 1.0);
-			// 	}
-			// }
-
-			return vec4<f32>(input.pos, 1.0);
+			return output;
 		}
-
-	// [[stage(vertex)]]
-	// fn main([[builtin(vertex_index)]] VertexIndex : u32)
-	// 		 -> [[builtin(position)]] vec4<f32> {
-	// 	var pos = array<vec2<f32>, 3>(
-	// 			vec2<f32>(0.0, 0.5),
-	// 			vec2<f32>(-0.5, -0.5),
-	// 			vec2<f32>(0.5, -0.5));
-
-	// 	return vec4<f32>(pos[VertexIndex], 0.0, 1.0);
-	// }
 	)"};
 
 	std::string wgsl_code_fragment
 	{R"(
-		[[stage(fragment)]]
-		fn main() -> [[location(0)]] vec4<f32>
+		[[stage(fragment)]] fn main() -> [[location(0)]] vec4<f32>
 		{
 			return vec4<f32>(1.0, 1.0, 0.0, 1.0);
 		}
@@ -576,15 +549,14 @@ int main (void)
 
 		.wgsl_code_fragment =
 			R"(
-				[[stage(fragment)]]
-				fn main() -> [[location(0)]] vec4<f32>
+				[[stage(fragment)]] fn main() -> [[location(0)]] vec4<f32>
 				{
-					return vec4<f32>(1.0, 1.0, 1.0, 1.0);
+					return vec4<f32>(1.0, 0.0, 1.0, 1.0);
 				}
 			)",
 	}};
 
-	uniform_block = new UniformBlock{{ .binding = 0, .name= "Camera"  }};
+	uniform_block = new UniformBlock{{ .binding = 0, .name = "Camera"  }};
 
 	object = new SceneObject;
 	object2 = new SceneObject;
