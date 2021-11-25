@@ -258,9 +258,9 @@ window.addEventListener
 
 
 			const scene = new webgpu_renderer.Scene(scene_addr);
+			const material = new webgpu_renderer.Material(material_addr);
+			const material2 = new webgpu_renderer.Material(material2_addr);
 			const uniform_block = new webgpu_renderer.UniformBlock(wasm.Addr(wasm.exports.uniform_block.value));
-			const material = new webgpu_renderer.Material(material_addr, [ uniform_block ]);
-			const material2 = new webgpu_renderer.Material(material2_addr, [ uniform_block ]);
 			const _object = new webgpu_renderer.Object(object_addr);
 			const object2 = new webgpu_renderer.Object(object2_addr);
 
@@ -311,7 +311,7 @@ window.addEventListener
 
 				webgpu_renderer.render_pass_encoder.setVertexBuffer(0, c, 0, scene.vertex_data.byteLength);
 
-				// uniform_block.use();
+				uniform_block.use();
 
 				material.use();
 
