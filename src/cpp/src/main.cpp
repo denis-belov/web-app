@@ -9,6 +9,8 @@
 
 #include "xgk-math/src/mat4/mat4.h"
 #include "xgk-math/src/orbit/orbit.h"
+#include "xgk-api/src/uniform/uniform.h"
+#include "xgk-api/src/uniform-block/uniform-block.h"
 
 
 
@@ -57,119 +59,6 @@ enum class Topology : std::size_t
 	POINTS,
 	LINES,
 };
-
-
-
-struct Uniform
-{
-	void* object_addr {};
-
-	std::string name {};
-
-	size_t block_index {};
-};
-
-struct UniformOffsets
-{
-	size_t object_addr = offsetof(Uniform, object_addr);
-	size_t name = offsetof(Uniform, name);
-	size_t block_index = offsetof(Uniform, block_index);
-};
-
-UniformOffsets uniform_offsets;
-
-
-
-struct UniformBlockOptions
-{
-	size_t binding {};
-
-	std::string name {};
-};
-
-
-
-struct UniformBlock
-{
-	static std::vector<UniformBlock*> instances;
-
-	static void destroy (void);
-
-
-
-	// UniformBlock () = default;
-	UniformBlock (void);
-	UniformBlock (const UniformBlockOptions&);
-	UniformBlock (const UniformBlockOptions&&);
-	UniformBlock (const UniformBlockOptions*);
-
-
-
-	size_t binding {};
-
-	std::string name {};
-
-	std::vector<Uniform*> uniforms {};
-
-
-
-	void injectUniform (Uniform&);
-	void injectUniform (Uniform&&);
-	void injectUniform (Uniform*);
-};
-
-struct UniformBlockOffsets
-{
-	size_t binding = offsetof(UniformBlock, binding);
-	size_t name = offsetof(UniformBlock, name);
-	size_t uniforms = offsetof(UniformBlock, uniforms);
-};
-
-UniformBlockOffsets uniform_block_offsets;
-
-UniformBlock::UniformBlock (void)
-{
-	UniformBlock::instances.push_back(this);
-}
-
-UniformBlock::UniformBlock (const UniformBlockOptions& options)
-{
-	binding = options.binding;
-	name = options.name;
-
-	UniformBlock::instances.push_back(this);
-}
-
-UniformBlock::UniformBlock (const UniformBlockOptions&& options)
-{
-	binding = options.binding;
-	name = options.name;
-
-	UniformBlock::instances.push_back(this);
-}
-
-void UniformBlock::destroy (void)
-{
-	for (std::size_t i {}; i < UniformBlock::instances.size(); ++i)
-	{
-		delete UniformBlock::instances[i];
-	}
-}
-
-void UniformBlock::injectUniform (Uniform& uniform)
-{
-	uniforms.push_back(&uniform);
-}
-
-void UniformBlock::injectUniform (Uniform&& uniform)
-{
-	uniforms.push_back(&uniform);
-}
-
-void UniformBlock::injectUniform (Uniform* uniform)
-{
-	uniforms.push_back(uniform);
-}
 
 
 
@@ -308,20 +197,20 @@ struct Material
 	std::string wgsl_code_vertex {};
 	std::string wgsl_code_fragment {};
 
-	std::vector<Uniform*> uniforms {};
+	std::vector<XGK::API::Uniform*> uniforms {};
 
-	std::vector<UniformBlock*> uniform_blocks {};
+	std::vector<XGK::API::UniformBlock*> uniform_blocks {};
 
 
 
 	// const Uniform& ?
-	void injectUniform (Uniform&);
-	void injectUniform (Uniform&&);
-	void injectUniform (Uniform*);
+	void injectUniform (XGK::API::Uniform&);
+	void injectUniform (XGK::API::Uniform&&);
+	void injectUniform (XGK::API::Uniform*);
 
-	void injectUniformBlock (UniformBlock&);
-	void injectUniformBlock (UniformBlock&&);
-	void injectUniformBlock (UniformBlock*);
+	void injectUniformBlock (XGK::API::UniformBlock&);
+	void injectUniformBlock (XGK::API::UniformBlock&&);
+	void injectUniformBlock (XGK::API::UniformBlock*);
 };
 
 struct MaterialOffsets
@@ -391,32 +280,32 @@ void Material::destroy (void)
 	}
 }
 
-void Material::injectUniform (Uniform& uniform)
+void Material::injectUniform (XGK::API::Uniform& uniform)
 {
 	uniforms.push_back(&uniform);
 }
 
-void Material::injectUniform (Uniform&& uniform)
+void Material::injectUniform (XGK::API::Uniform&& uniform)
 {
 	uniforms.push_back(&uniform);
 }
 
-void Material::injectUniform (Uniform* uniform)
+void Material::injectUniform (XGK::API::Uniform* uniform)
 {
 	uniforms.push_back(uniform);
 }
 
-void Material::injectUniformBlock (UniformBlock& uniform_block)
+void Material::injectUniformBlock (XGK::API::UniformBlock& uniform_block)
 {
 	uniform_blocks.push_back(&uniform_block);
 }
 
-void Material::injectUniformBlock (UniformBlock&& uniform_block)
+void Material::injectUniformBlock (XGK::API::UniformBlock&& uniform_block)
 {
 	uniform_blocks.push_back(&uniform_block);
 }
 
-void Material::injectUniformBlock (UniformBlock* uniform_block)
+void Material::injectUniformBlock (XGK::API::UniformBlock* uniform_block)
 {
 	uniform_blocks.push_back(uniform_block);
 }
@@ -492,7 +381,7 @@ float window_height {};
 Scene* scene {};
 Material* material {};
 Material* material2 {};
-UniformBlock* uniform_block {};
+XGK::API::UniformBlock* uniform_block {};
 SceneObject* object {};
 SceneObject* object2 {};
 XGK::MATH::Orbit* orbit;
@@ -557,7 +446,7 @@ int main (void)
 			)",
 	}};
 
-	uniform_block = new UniformBlock{{ .binding = 0, .name = "Camera"  }};
+	uniform_block = new XGK::API::UniformBlock{{ .binding = 0, .name = "Camera"  }};
 
 	object = new SceneObject;
 	object2 = new SceneObject;
@@ -583,14 +472,14 @@ int main (void)
 
 
 
-	material->injectUniform(new Uniform { .object_addr = &(orbit->projection_matrix), .name = "projection_matrix" });
-	material->injectUniform(new Uniform { .object_addr = &(orbit->view_matrix), .name = "view_matrix" });
+	material->injectUniform(new XGK::API::Uniform { .object_addr = &(orbit->projection_matrix), .name = "projection_matrix" });
+	material->injectUniform(new XGK::API::Uniform { .object_addr = &(orbit->view_matrix), .name = "view_matrix" });
 
-	material2->injectUniform(new Uniform { .object_addr = &(orbit->projection_matrix), .name = "projection_matrix" });
-	material2->injectUniform(new Uniform { .object_addr = &(orbit->view_matrix), .name = "view_matrix" });
+	material2->injectUniform(new XGK::API::Uniform { .object_addr = &(orbit->projection_matrix), .name = "projection_matrix" });
+	material2->injectUniform(new XGK::API::Uniform { .object_addr = &(orbit->view_matrix), .name = "view_matrix" });
 
-	uniform_block->injectUniform(new Uniform { .object_addr = &(orbit->projection_matrix), .block_index = 0 });
-	uniform_block->injectUniform(new Uniform { .object_addr = &(orbit->view_matrix), .block_index = 16});
+	uniform_block->injectUniform(new XGK::API::Uniform { .object_addr = &(orbit->projection_matrix), .block_index = 0 });
+	uniform_block->injectUniform(new XGK::API::Uniform { .object_addr = &(orbit->view_matrix), .block_index = 16 });
 
 	material->injectUniformBlock(uniform_block);
 	material2->injectUniformBlock(uniform_block);

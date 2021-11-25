@@ -24,7 +24,8 @@
 		[
 			"$(SRC)",
 			"$(REPS)/denis-belov",
-			"$(REPS)/denis-belov/xgk-math/src"
+			"$(REPS)/denis-belov/xgk-math/src",
+			"$(REPS)/denis-belov/xgk-api/src"
 		],
 
 		"flags_additional": "$(STD_20) $(NO_LINK) $(VERBOSE) $(OPT_FASTX) $(SSE)",
@@ -40,6 +41,12 @@
 				"file": "$(REPS)/denis-belov/xgk-math/build/$(ENV)/output/$(LIB_EXT)/xgk-math.$(LIB_EXT)",
 				"watch_directories": "$(REPS)/denis-belov/xgk-math/src",
 				"do": "genmake $(ENV) $(REPS)/denis-belov/xgk-math/genmake.json"
+			},
+
+			{
+				"file": "$(REPS)/denis-belov/xgk-api/build/$(ENV)/output/$(LIB_EXT)/xgk-api.$(LIB_EXT)",
+				"watch_directories": "$(REPS)/denis-belov/xgk-api/src",
+				"do": "genmake $(ENV) $(REPS)/denis-belov/xgk-api/genmake.json"
 			}
 		]
 	}
