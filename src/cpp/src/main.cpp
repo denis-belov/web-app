@@ -148,14 +148,22 @@ struct MaterialOptions
 			view_matrix : mat4x4<f32>;
 		};
 
-		[[group(0), binding(0)]] var<uniform> camera2 : Camera;
-		[[group(1), binding(0)]] var<uniform> camera : Camera;
+		[[group(0), binding(0)]] var<uniform> camera : Camera;
+
+		[[block]] struct Dedicated
+		{
+			view_matrix : mat4x4<f32>;
+		};
+
+		[[group(0), binding(1)]] var<uniform> dedicated : Dedicated;
 
 		[[stage(vertex)]] fn main(input : VertexIn) -> VertexOut
 		{
 			var output : VertexOut;
 
-			output.pos = camera.projection_matrix * camera2.view_matrix * vec4<f32>(input.pos, 1.0);
+			// input.pos.x += dedicated.view_matrix[0];
+
+			output.pos = camera.projection_matrix * camera.view_matrix * vec4<f32>(input.pos, 1.0 + dedicated.view_matrix[0].x);
 
 			return output;
 		}
@@ -201,6 +209,8 @@ struct Material
 
 	std::vector<XGK::API::UniformBlock*> uniform_blocks {};
 
+	// XGK::API::UniformBlock dedicated_uniform_block {{ .binding = 1, .name = "Dedicated"  }};
+
 
 
 	// const Uniform& ?
@@ -224,6 +234,7 @@ struct MaterialOffsets
 	size_t wgsl_code_fragment = offsetof(Material, wgsl_code_fragment);
 	size_t uniforms = offsetof(Material, uniforms);
 	size_t uniform_blocks = offsetof(Material, uniform_blocks);
+	// size_t dedicated_uniform_block = offsetof(Material, dedicated_uniform_block);
 };
 
 MaterialOffsets material_offsets;
@@ -283,16 +294,19 @@ void Material::destroy (void)
 void Material::injectUniform (XGK::API::Uniform& uniform)
 {
 	uniforms.push_back(&uniform);
+	// dedicated_uniform_block.injectUniform(&uniform);
 }
 
 void Material::injectUniform (XGK::API::Uniform&& uniform)
 {
 	uniforms.push_back(&uniform);
+	// dedicated_uniform_block.injectUniform(&uniform);
 }
 
 void Material::injectUniform (XGK::API::Uniform* uniform)
 {
 	uniforms.push_back(uniform);
+	// dedicated_uniform_block.injectUniform(uniform);
 }
 
 void Material::injectUniformBlock (XGK::API::UniformBlock& uniform_block)
@@ -382,9 +396,11 @@ Scene* scene {};
 Material* material {};
 Material* material2 {};
 XGK::API::UniformBlock* uniform_block {};
+XGK::API::UniformBlock* m2_uniform_block {};
 SceneObject* object {};
 SceneObject* object2 {};
 XGK::MATH::Orbit* orbit;
+XGK::MATH::Orbit* orbit2;
 
 // Material* materials [1000] {};
 // SceneObject* objects [1000] {};
@@ -405,7 +421,41 @@ extern "C" void destroy (void)
 int main (void)
 {
 	scene = new Scene;
-	material = new Material {{ .topology = Topology::TRIANGLES }};
+	material = new Material
+	{{
+		.topology = Topology::TRIANGLES,
+
+		.wgsl_code_vertex =
+			R"(
+				[[block]] struct VertexIn
+				{
+					[[location(0)]] pos : vec3<f32>;
+					[[builtin(vertex_index)]] vi : u32;
+				};
+
+				[[block]] struct VertexOut
+				{
+					[[builtin(position)]] pos : vec4<f32>;
+				};
+
+				[[block]] struct Camera
+				{
+					projection_matrix : mat4x4<f32>;
+					view_matrix : mat4x4<f32>;
+				};
+
+				[[group(0), binding(0)]] var<uniform> camera : Camera;
+
+				[[stage(vertex)]] fn main(input : VertexIn) -> VertexOut
+				{
+					var output : VertexOut;
+
+					output.pos = camera.projection_matrix * camera.view_matrix * vec4<f32>(input.pos, 1.0);
+
+					return output;
+				}
+			)",
+	}};
 
 	material2 = new Material
 	{{
@@ -448,6 +498,8 @@ int main (void)
 
 	uniform_block = new XGK::API::UniformBlock{{ .binding = 0, .name = "Camera"  }};
 
+	m2_uniform_block = new XGK::API::UniformBlock{{ .binding = 1, .name = "Dedicated"  }};
+
 	object = new SceneObject;
 	object2 = new SceneObject;
 
@@ -472,6 +524,15 @@ int main (void)
 
 
 
+	orbit2 = new XGK::MATH::Orbit;
+
+	orbit2->object.setTransZ(10.0f);
+	orbit2->update();
+
+	orbit2->projection_matrix.makeProjPersp(45.0f, window_width / window_height, 1.0f, 2000.0f, 1.0f);
+
+
+
 	material->injectUniform(new XGK::API::Uniform { .object_addr = &(orbit->projection_matrix), .name = "projection_matrix" });
 	material->injectUniform(new XGK::API::Uniform { .object_addr = &(orbit->view_matrix), .name = "view_matrix" });
 
@@ -481,8 +542,11 @@ int main (void)
 	uniform_block->injectUniform(new XGK::API::Uniform { .object_addr = &(orbit->projection_matrix), .block_index = 0 });
 	uniform_block->injectUniform(new XGK::API::Uniform { .object_addr = &(orbit->view_matrix), .block_index = 16 });
 
+	m2_uniform_block->injectUniform(new XGK::API::Uniform { .object_addr = &(orbit2->view_matrix), .block_index = 0 });
+
 	material->injectUniformBlock(uniform_block);
 	material2->injectUniformBlock(uniform_block);
+	material2->injectUniformBlock(m2_uniform_block);
 
 
 
