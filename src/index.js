@@ -36,6 +36,7 @@ window.addEventListener
 		const scene_addr = wasm.Addr(wasm.exports.scene.value);
 		const material_addr = wasm.Addr(wasm.exports.material.value);
 		const material2_addr = wasm.Addr(wasm.exports.material2.value);
+		const uniform_block_addr = wasm.Addr(wasm.exports.uniform_block.value);
 		const object_addr = wasm.Addr(wasm.exports.object.value);
 		const object2_addr = wasm.Addr(wasm.exports.object2.value);
 
@@ -48,8 +49,8 @@ window.addEventListener
 
 		const updateOrbit = () =>
 		{
-			wasm.exports._ZN3XGK4MATH5Orbit7rotate2Eff(orbit, 0.01, 0.01);
-			wasm.exports._ZN3XGK4MATH5Orbit6updateEv(orbit);
+			// wasm.exports._ZN3XGK4MATH5Orbit7rotate2Eff(orbit, 0.01, 0.01);
+			// wasm.exports._ZN3XGK4MATH5Orbit6updateEv(orbit);
 
 			wasm.exports._ZN3XGK4MATH5Orbit7rotate2Eff(orbit2, 0.01, 0.01);
 			wasm.exports._ZN3XGK4MATH5Orbit6updateEv(orbit2);
@@ -61,112 +62,125 @@ window.addEventListener
 
 
 
+		window.addEventListener
+		(
+			'mousemove',
+
+			(evt) =>
+			{
+				wasm.exports._ZN3XGK4MATH5Orbit7rotate2Eff(orbit, evt.movementX * 0.01, evt.movementY * 0.01);
+				wasm.exports._ZN3XGK4MATH5Orbit6updateEv(orbit);
+			},
+		);
+
+
+
 		{
-			// const webgl_renderer = new WebGLRenderer(wasm, document.querySelectorAll('canvas')[0], 'webgl', window.innerWidth / 3, window.innerHeight);
+			const renderer = new WebGLRenderer(wasm, document.querySelectorAll('canvas')[0], 'webgl', window.innerWidth / 3, window.innerHeight);
 
-			// const gl = webgl_renderer._context;
-
-
-
-			// const scene = new webgl_renderer.Scene(scene_addr);
-			// const material = new webgl_renderer.Material(material_addr);
-			// const material2 = new webgl_renderer.Material(material2_addr);
-			// const _object = new webgl_renderer.Object(object_addr);
-			// const object2 = new webgl_renderer.Object(object2_addr);
+			const gl = renderer._context;
 
 
 
-			// // const _materials =
-			// // 	Array.from(wasm.Addrv(wasm.exports.materials.value, 1000))
-			// // 		.map
-			// // 		(
-			// // 			(addr) =>
-			// // 			{
-			// // 				return new webgl_renderer.Material(addr);
-			// // 			},
-			// // 		);
-
-			// // const _objects =
-			// // 	Array.from(wasm.Addrv(wasm.exports.objects.value, 1000))
-			// // 		.map
-			// // 		(
-			// // 			(object_addr) =>
-			// // 			{
-			// // 				return new webgl_renderer.Object(object_addr);
-			// // 			},
-			// // 		);
+			const scene = new renderer.Scene(scene_addr);
+			const material = new renderer.Material(material_addr);
+			const material2 = new renderer.Material(material2_addr);
+			const _object = new renderer.Object(object_addr);
+			const object2 = new renderer.Object(object2_addr);
 
 
 
-			// const b = gl.createBuffer();
+			// const _materials =
+			// 	Array.from(wasm.Addrv(wasm.exports.materials.value, 1000))
+			// 		.map
+			// 		(
+			// 			(addr) =>
+			// 			{
+			// 				return new renderer.Material(addr);
+			// 			},
+			// 		);
 
-			// gl.bindBuffer(gl.ARRAY_BUFFER, b);
-			// gl.bufferData(gl.ARRAY_BUFFER, scene.vertex_data, gl.STATIC_DRAW);
-			// gl.vertexAttribPointer(0, 3, gl.FLOAT, 0, 0, 0);
-
-			// gl.enableVertexAttribArray(0);
-
-
-
-			// let time = Date.now();
-
-			// const [ fps ] = document.querySelectorAll('.fps');
-
-			// let fps_counter = 0;
-
-			// const render = () =>
-			// {
-			// 	gl.clear(gl.COLOR_BUFFER_BIT);
-
-			// 	material.use();
-
-			// 	_object.draw();
-
-			// 	material2.use();
-
-			// 	object2.draw();
-
-			// 	// for (let i = 0; i < _materials.length; ++i)
-			// 	// {
-			// 	// 	gl.clear(gl.COLOR_BUFFER_BIT);
-			// 	// 	_materials[i].use();
-			// 	// 	_objects[i].draw();
-			// 	// }
-
-			// 	requestAnimationFrame(render);
+			// const _objects =
+			// 	Array.from(wasm.Addrv(wasm.exports.objects.value, 1000))
+			// 		.map
+			// 		(
+			// 			(object_addr) =>
+			// 			{
+			// 				return new renderer.Object(object_addr);
+			// 			},
+			// 		);
 
 
 
-			// 	if (Math.floor((Date.now() - time) * 0.001))
-			// 	{
-			// 		fps.innerHTML = fps_counter;
+			const b = gl.createBuffer();
 
-			// 		fps_counter = 0;
+			gl.bindBuffer(gl.ARRAY_BUFFER, b);
+			gl.bufferData(gl.ARRAY_BUFFER, scene.vertex_data, gl.STATIC_DRAW);
+			gl.vertexAttribPointer(0, 3, gl.FLOAT, 0, 0, 0);
 
-			// 		time = Date.now();
-			// 	}
+			gl.enableVertexAttribArray(0);
 
-			// 	++fps_counter;
-			// };
 
-			// render();
+
+			let time = Date.now();
+
+			const [ fps ] = document.querySelectorAll('.fps');
+
+			let fps_counter = 0;
+
+			const render = () =>
+			{
+				gl.clear(gl.COLOR_BUFFER_BIT);
+
+				material.use();
+
+				_object.draw();
+
+				material2.use();
+
+				object2.draw();
+
+				// for (let i = 0; i < _materials.length; ++i)
+				// {
+				// 	gl.clear(gl.COLOR_BUFFER_BIT);
+				// 	_materials[i].use();
+				// 	_objects[i].draw();
+				// }
+
+				requestAnimationFrame(render);
+
+
+
+				if (Math.floor((Date.now() - time) * 0.001))
+				{
+					fps.innerHTML = fps_counter;
+
+					fps_counter = 0;
+
+					time = Date.now();
+				}
+
+				++fps_counter;
+			};
+
+			render();
 		}
 
 
 
 		{
-			const webgl_renderer = new WebGLRenderer(wasm, document.querySelectorAll('canvas')[1], 'webgl2', window.innerWidth / 3, window.innerHeight);
+			const renderer = new WebGLRenderer(wasm, document.querySelectorAll('canvas')[1], 'webgl2', window.innerWidth / 3, window.innerHeight);
 
-			const gl = webgl_renderer._context;
+			const gl = renderer._context;
 
 
 
-			const scene = new webgl_renderer.Scene(scene_addr);
-			const material = new webgl_renderer.Material(material_addr);
-			const material2 = new webgl_renderer.Material(material2_addr);
-			const uniform_block = new webgl_renderer.UniformBlock(wasm.Addr(wasm.exports.uniform_block.value));
-			const _object = new webgl_renderer.Object(object_addr);
-			const object2 = new webgl_renderer.Object(object2_addr);
+			const scene = new renderer.Scene(scene_addr);
+			const material = new renderer.Material(material_addr);
+			const material2 = new renderer.Material(material2_addr);
+			const uniform_block = new renderer.UniformBlock(uniform_block_addr);
+			const _object = new renderer.Object(object_addr);
+			const object2 = new renderer.Object(object2_addr);
 
 
 
@@ -176,7 +190,7 @@ window.addEventListener
 			// 		(
 			// 			(addr) =>
 			// 			{
-			// 				return new webgl_renderer.Material(addr);
+			// 				return new renderer.Material(addr);
 			// 			},
 			// 		);
 
@@ -186,7 +200,7 @@ window.addEventListener
 			// 	(
 			// 		(object_addr) =>
 			// 		{
-			// 			return new webgl_renderer.Object(object_addr);
+			// 			return new renderer.Object(object_addr);
 			// 		},
 			// 	);
 
@@ -251,23 +265,33 @@ window.addEventListener
 
 
 		{
-			const webgpu_renderer = new WebGPURenderer(wasm, document.querySelectorAll('canvas')[2], window.innerWidth / 3, window.innerHeight);
+			const renderer = new WebGPURenderer(wasm, document.querySelectorAll('canvas')[2], window.innerWidth / 3, window.innerHeight);
 
-			await webgpu_renderer.init();
+			await renderer.init();
 
 
 
-			const scene = new webgpu_renderer.Scene(scene_addr);
-			const material = new webgpu_renderer.Material(material_addr);
-			const material2 = new webgpu_renderer.Material(material2_addr);
-			const uniform_block = new webgpu_renderer.UniformBlock(wasm.Addr(wasm.exports.uniform_block.value));
-			const _object = new webgpu_renderer.Object(object_addr);
-			const object2 = new webgpu_renderer.Object(object2_addr);
+			const
+				{
+					Scene,
+					Material,
+					UniformBlock,
+					Object,
+				} = renderer;
+
+
+
+			const scene = new Scene(scene_addr);
+			const material = Material.getInstance(material_addr);
+			const material2 = Material.getInstance(material2_addr);
+			const uniform_block = UniformBlock.getInstance(uniform_block_addr);
+			const _object = new Object(object_addr);
+			const object2 = new Object(object2_addr);
 
 
 
 			const c =
-				webgpu_renderer.device.createBuffer
+				renderer.device.createBuffer
 				({
 					size: scene.vertex_data.byteLength,
 
@@ -278,7 +302,7 @@ window.addEventListener
 					),
 				});
 
-			webgpu_renderer.device.queue.writeBuffer(c, 0, scene.vertex_data, 0, scene.vertex_data.length);
+			renderer.device.queue.writeBuffer(c, 0, scene.vertex_data, 0, scene.vertex_data.length);
 
 
 
@@ -290,11 +314,11 @@ window.addEventListener
 
 			const render = () =>
 			{
-				const command_encoder = webgpu_renderer.device.createCommandEncoder();
+				const command_encoder = renderer.device.createCommandEncoder();
 
-				const context_texture = webgpu_renderer._context.getCurrentTexture();
+				const context_texture = renderer._context.getCurrentTexture();
 
-				webgpu_renderer.render_pass_encoder =
+				renderer.render_pass_encoder =
 					command_encoder.beginRenderPass
 					({
 						colorAttachments:
@@ -309,7 +333,7 @@ window.addEventListener
 						],
 					});
 
-				webgpu_renderer.render_pass_encoder.setVertexBuffer(0, c, 0, scene.vertex_data.byteLength);
+				renderer.render_pass_encoder.setVertexBuffer(0, c, 0, scene.vertex_data.byteLength);
 
 				uniform_block.use();
 
@@ -321,11 +345,11 @@ window.addEventListener
 
 				object2.draw();
 
-				webgpu_renderer.render_pass_encoder.endPass();
+				renderer.render_pass_encoder.endPass();
 
 				const command_buffer = command_encoder.finish();
 
-				webgpu_renderer.device.queue.submit([ command_buffer ]);
+				renderer.device.queue.submit([ command_buffer ]);
 
 
 

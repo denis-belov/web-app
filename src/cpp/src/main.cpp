@@ -237,6 +237,8 @@ struct MaterialOffsets
 
 MaterialOffsets material_offsets;
 
+std::vector<Material*> Material::instances {};
+
 Material::Material (void)
 {
 	const MaterialOptions options {};
@@ -293,19 +295,16 @@ void Material::destroy (void)
 void Material::injectUniform (XGK::API::Uniform& uniform)
 {
 	uniforms.push_back(&uniform);
-	// dedicated_uniform_block.injectUniform(&uniform);
 }
 
 void Material::injectUniform (XGK::API::Uniform&& uniform)
 {
 	uniforms.push_back(&uniform);
-	// dedicated_uniform_block.injectUniform(&uniform);
 }
 
 void Material::injectUniform (XGK::API::Uniform* uniform)
 {
 	uniforms.push_back(uniform);
-	// dedicated_uniform_block.injectUniform(uniform);
 }
 
 void Material::injectUniformBlock (XGK::API::UniformBlock& uniform_block)
