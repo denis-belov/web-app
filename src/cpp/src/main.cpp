@@ -1,6 +1,8 @@
 // Passing const scalar arguments by refefence
 // works unexpectedly in wasm.
 
+// TODO: All structs destroy function to destroy all instances.
+
 
 
 #include <cstring>
@@ -78,7 +80,7 @@ struct MaterialOptions
 
 		void main (void)
 		{
-			gl_Position = vec4(in_position, 1.0);
+			gl_Position = projection_matrix * view_matrix * vec4(in_position, 1.0);
 		}
 	)"};
 
@@ -520,11 +522,11 @@ int main (void)
 
 
 
-	material->injectUniform(new XGK::API::Uniform { .object_addr = &(orbit->projection_matrix), .name = "projection_matrix" });
-	material->injectUniform(new XGK::API::Uniform { .object_addr = &(orbit->view_matrix), .name = "view_matrix" });
+	material->injectUniform(new XGK::API::Uniform { .object_addr = &(orbit->projection_matrix), .name = "projection_matrix", .size = sizeof(orbit->projection_matrix) });
+	material->injectUniform(new XGK::API::Uniform { .object_addr = &(orbit->view_matrix), .name = "view_matrix", .size = sizeof(orbit->view_matrix) });
 
-	material2->injectUniform(new XGK::API::Uniform { .object_addr = &(orbit->projection_matrix), .name = "projection_matrix" });
-	material2->injectUniform(new XGK::API::Uniform { .object_addr = &(orbit->view_matrix), .name = "view_matrix" });
+	material2->injectUniform(new XGK::API::Uniform { .object_addr = &(orbit->projection_matrix), .name = "projection_matrix", .size = sizeof(orbit->projection_matrix) });
+	material2->injectUniform(new XGK::API::Uniform { .object_addr = &(orbit->view_matrix), .name = "view_matrix", .size = sizeof(orbit->view_matrix) });
 
 	uniform_block->injectUniform(new XGK::API::Uniform { .object_addr = &(orbit->projection_matrix), .block_index = offsetof(XGK::MATH::Orbit, projection_matrix), .size = sizeof(orbit->projection_matrix) });
 	uniform_block->injectUniform(new XGK::API::Uniform { .object_addr = &(orbit->view_matrix), .block_index = offsetof(XGK::MATH::Orbit, view_matrix), .size = sizeof(orbit->view_matrix) });

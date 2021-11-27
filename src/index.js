@@ -76,39 +76,29 @@ window.addEventListener
 
 
 		{
-			const renderer = new WebGLRenderer(wasm, document.querySelectorAll('canvas')[0], 'webgl', window.innerWidth / 3, window.innerHeight);
+			const renderer =
+				new WebGLRenderer(wasm, document.querySelectorAll('canvas')[0], 'webgl', window.innerWidth / 3, window.innerHeight);
+
+
+
+			const
+				{
+					Scene,
+					Material,
+					Object,
+				} = renderer;
+
+
+
+			const scene = Scene.getInstance(scene_addr);
+			const material = Material.getInstance(material_addr);
+			const material2 = Material.getInstance(material2_addr);
+			const _object = Object.getInstance(object_addr);
+			const object2 = Object.getInstance(object2_addr);
+
+
 
 			const gl = renderer._context;
-
-
-
-			const scene = new renderer.Scene(scene_addr);
-			const material = new renderer.Material(material_addr);
-			const material2 = new renderer.Material(material2_addr);
-			const _object = new renderer.Object(object_addr);
-			const object2 = new renderer.Object(object2_addr);
-
-
-
-			// const _materials =
-			// 	Array.from(wasm.Addrv(wasm.exports.materials.value, 1000))
-			// 		.map
-			// 		(
-			// 			(addr) =>
-			// 			{
-			// 				return new renderer.Material(addr);
-			// 			},
-			// 		);
-
-			// const _objects =
-			// 	Array.from(wasm.Addrv(wasm.exports.objects.value, 1000))
-			// 		.map
-			// 		(
-			// 			(object_addr) =>
-			// 			{
-			// 				return new renderer.Object(object_addr);
-			// 			},
-			// 		);
 
 
 
@@ -140,15 +130,6 @@ window.addEventListener
 
 				object2.draw();
 
-				// for (let i = 0; i < _materials.length; ++i)
-				// {
-				// 	gl.clear(gl.COLOR_BUFFER_BIT);
-				// 	_materials[i].use();
-				// 	_objects[i].draw();
-				// }
-
-				requestAnimationFrame(render);
-
 
 
 				if (Math.floor((Date.now() - time) * 0.001))
@@ -161,6 +142,10 @@ window.addEventListener
 				}
 
 				++fps_counter;
+
+
+
+				requestAnimationFrame(render);
 			};
 
 			render();
@@ -169,40 +154,29 @@ window.addEventListener
 
 
 		{
-			const renderer = new WebGLRenderer(wasm, document.querySelectorAll('canvas')[1], 'webgl2', window.innerWidth / 3, window.innerHeight);
+			const renderer =
+				new WebGLRenderer(wasm, document.querySelectorAll('canvas')[1], 'webgl2', window.innerWidth / 3, window.innerHeight);
 
 			const gl = renderer._context;
 
 
 
-			const scene = new renderer.Scene(scene_addr);
-			const material = new renderer.Material(material_addr);
-			const material2 = new renderer.Material(material2_addr);
-			const uniform_block = new renderer.UniformBlock(uniform_block_addr);
-			const _object = new renderer.Object(object_addr);
-			const object2 = new renderer.Object(object2_addr);
+			const
+				{
+					Scene,
+					Material,
+					UniformBlock,
+					Object,
+				} = renderer;
 
 
 
-			// const _materials =
-			// 	Array.from(wasm.Addrv(wasm.exports.materials.value, 100))
-			// 		.map
-			// 		(
-			// 			(addr) =>
-			// 			{
-			// 				return new renderer.Material(addr);
-			// 			},
-			// 		);
-
-			// const _objects =
-			// 	Array.from(wasm.Addrv(wasm.exports.objects.value, 100))
-			// 	.map
-			// 	(
-			// 		(object_addr) =>
-			// 		{
-			// 			return new renderer.Object(object_addr);
-			// 		},
-			// 	);
+			const scene = Scene.getInstance(scene_addr);
+			const material = Material.getInstance(material_addr);
+			const material2 = Material.getInstance(material2_addr);
+			const uniform_block = UniformBlock.getInstance(uniform_block_addr);
+			const _object = Object.getInstance(object_addr);
+			const object2 = Object.getInstance(object2_addr);
 
 
 
@@ -236,14 +210,6 @@ window.addEventListener
 
 				object2.draw();
 
-				// for (let i = 0; i < _materials.length; ++i)
-				// {
-				// 	gl.clear(gl.COLOR_BUFFER_BIT);
-				// 	_materials[i].use();
-				// 	_objects[i].draw();
-				// }
-
-				requestAnimationFrame(render);
 
 
 
@@ -257,6 +223,10 @@ window.addEventListener
 				}
 
 				++fps_counter;
+
+
+
+				requestAnimationFrame(render);
 			};
 
 			render();
@@ -265,7 +235,8 @@ window.addEventListener
 
 
 		{
-			const renderer = new WebGPURenderer(wasm, document.querySelectorAll('canvas')[2], window.innerWidth / 3, window.innerHeight);
+			const renderer =
+				new WebGPURenderer(wasm, document.querySelectorAll('canvas')[2], window.innerWidth / 3, window.innerHeight);
 
 			await renderer.init();
 
@@ -281,12 +252,12 @@ window.addEventListener
 
 
 
-			const scene = new Scene(scene_addr);
+			const scene = Scene.getInstance(scene_addr);
 			const material = Material.getInstance(material_addr);
 			const material2 = Material.getInstance(material2_addr);
 			const uniform_block = UniformBlock.getInstance(uniform_block_addr);
-			const _object = new Object(object_addr);
-			const object2 = new Object(object2_addr);
+			const _object = Object.getInstance(object_addr);
+			const object2 = Object.getInstance(object2_addr);
 
 
 
@@ -353,10 +324,6 @@ window.addEventListener
 
 
 
-				requestAnimationFrame(render);
-
-
-
 				if (Math.floor((Date.now() - time) * 0.001))
 				{
 					fps.innerHTML = fps_counter;
@@ -367,6 +334,10 @@ window.addEventListener
 				}
 
 				++fps_counter;
+
+
+
+				requestAnimationFrame(render);
 			};
 
 			render();
