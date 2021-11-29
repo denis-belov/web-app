@@ -70,6 +70,12 @@
 				"file": "$(REPS)/denis-belov/xgk-api/build/$(ENV)/output/$(LIB_EXT)/xgk-api.$(LIB_EXT)",
 				"watch_directories": "$(REPS)/denis-belov/xgk-api/src",
 				"do": "genmake $(ENV) $(REPS)/denis-belov/xgk-api/genmake.json"
+			},
+
+			{
+				"file": "$(REPS)/denis-belov/xgk-aux/build/$(ENV)/output/$(LIB_EXT)/xgk-aux.$(LIB_EXT)",
+				"watch_directories": "$(REPS)/denis-belov/xgk-aux/src",
+				"do": "genmake $(ENV) $(REPS)/denis-belov/xgk-aux/genmake.json"
 			}
 		]
 	}

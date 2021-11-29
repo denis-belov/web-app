@@ -13,13 +13,19 @@
 
 #include "xgk-math/src/mat4/mat4.h"
 #include "xgk-math/src/orbit/orbit.h"
+#include "xgk-math/src/util/util.h"
 #include "xgk-api/src/uniform/uniform.h"
 #include "xgk-api/src/uniform-block/uniform-block.h"
+#include "xgk-aux/src/transition-stack/transition-stack.h"
+#include "xgk-aux/src/transition/transition.h"
 
 
 
 extern "C" void console_log (std::size_t);
 #define LOG(x) console_log((std::size_t) x);
+
+extern "C" void console_log_f (float);
+#define LOGF(x) console_log_f((float) x);
 
 extern "C" std::size_t getTime (void);
 
@@ -450,9 +456,89 @@ XGK::MATH::Orbit* orbit2 {};
 DescriptorSet* desc_set1 {};
 DescriptorSet* desc_set2 {};
 
+float* curve_values {};
+XGK::Transition orbit_transition;
+
+extern "C" void ___test (const size_t& time_gone)
+{
+	static size_t prev_time {};
+
+	float temp { curve_values[time_gone - 1] };
+
+	if (time_gone < prev_time)
+	{
+		prev_time = 0;
+	}
+
+	orbit->rotation_speed_x = orbit->rotation_speed_y = temp * (time_gone - prev_time) * 0.01;
+
+	// LOGF(temp);
+
+	// LOG(time_gone);
+	// LOG(prev_time);
+
+	prev_time = time_gone;
+
+	orbit->rotate();
+	orbit->update();
+}
+
+XGK::TransitionStack* _stack {};
+
+extern "C" void updateTransitions (void)
+{
+	_stack->calculateFrametime();
+	_stack->update();
+}
+
+extern "C" void startTransition (void)
+{
+	orbit_transition.start2(5000, ___test);
+}
 
 int main (void)
 {
+	curve_values = new float [5000];
+
+	_stack = new XGK::TransitionStack { 64 };
+
+	// XGK::MATH::UTIL::makeBezierCurve3Sequence2
+	// (
+	// 	curve_values,
+	// 	0, 0, 0, 0,
+	// 	// 0,.5,.5,1,
+	// 	// 0, 1, 1, 1,
+	// 	1000
+	// );
+
+	XGK::MATH::UTIL::makeBezierCurve3Sequence
+	(
+		curve_values,
+
+		// 0.0000001f, 0.0000001f, 0.0000001f, 0.0f, 0.00000005f, 0.0f, 0.0f, 0.0f,
+
+		1.0f,
+		1.0f,
+		1.0f,
+		0.0f,
+		0.5f,
+		0.0f,
+		0.0f,
+		0.0f,
+
+		// 1.0f * 3.14f / 1000000000.0f,
+		// 1.0f * 3.14f / 1000000000.0f,
+		// 1.0f * 3.14f / 1000000000.0f,
+		// 1.0f * 3.14f / 1000000000.0f,
+		// 1.0f * 3.14f / 1000000000.0f,
+		// 1.0f * 3.14f / 1000000000.0f,
+		// 1.0f * 3.14f / 1000000000.0f,
+		// 1.0f * 3.14f / 1000000000.0f,
+
+
+		5000
+	);
+
 	scene = new Scene;
 
 	material = new Material
@@ -572,14 +658,21 @@ int main (void)
 
 
 
-	material->injectUniform(new XGK::API::Uniform { .object_addr = &(orbit->projection_matrix), .name = "projection_matrix", .size = sizeof(orbit->projection_matrix) });
-	material->injectUniform(new XGK::API::Uniform { .object_addr = &(orbit->view_matrix), .name = "view_matrix", .size = sizeof(orbit->view_matrix) });
 
-	material2->injectUniform(new XGK::API::Uniform { .object_addr = &(orbit->projection_matrix), .name = "projection_matrix", .size = sizeof(orbit->projection_matrix) });
-	material2->injectUniform(new XGK::API::Uniform { .object_addr = &(orbit->view_matrix), .name = "view_matrix", .size = sizeof(orbit->view_matrix) });
+	XGK::API::Uniform* projection_matrix_uniform
+	{ new XGK::API::Uniform { .object_addr = &(orbit->projection_matrix), .name = "projection_matrix", .block_index = offsetof(XGK::MATH::Orbit, projection_matrix), .size = sizeof(orbit->projection_matrix) } };
 
-	uniform_block0->injectUniform(new XGK::API::Uniform { .object_addr = &(orbit->projection_matrix), .block_index = offsetof(XGK::MATH::Orbit, projection_matrix), .size = sizeof(orbit->projection_matrix) });
-	uniform_block0->injectUniform(new XGK::API::Uniform { .object_addr = &(orbit->view_matrix), .block_index = offsetof(XGK::MATH::Orbit, view_matrix), .size = sizeof(orbit->view_matrix) });
+	XGK::API::Uniform* view_matrix_uniform
+	{ new XGK::API::Uniform { .object_addr = &(orbit->view_matrix), .name = "view_matrix", .block_index = offsetof(XGK::MATH::Orbit, view_matrix), .size = sizeof(orbit->view_matrix) } };
+
+	material->injectUniform(projection_matrix_uniform);
+	material->injectUniform(view_matrix_uniform);
+
+	material2->injectUniform(projection_matrix_uniform);
+	material2->injectUniform(view_matrix_uniform);
+
+	uniform_block0->injectUniform(projection_matrix_uniform);
+	uniform_block0->injectUniform(view_matrix_uniform);
 
 	uniform_block1->injectUniform(new XGK::API::Uniform { .object_addr = &(orbit2->view_matrix), .block_index = 0, .size = sizeof(float) });
 

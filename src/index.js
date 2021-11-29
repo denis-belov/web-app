@@ -57,10 +57,22 @@ window.addEventListener
 			wasm.exports._ZN3XGK4MATH5Orbit7rotate2Eff(orbit2, 0.01, 0.01);
 			wasm.exports._ZN3XGK4MATH5Orbit6updateEv(orbit2);
 
+			wasm.exports.updateTransitions();
+
 			requestAnimationFrame(updateOrbit);
 		};
 
 		updateOrbit();
+
+		setTimeout
+		(
+			() =>
+			{
+				wasm.exports.startTransition();
+			},
+
+			3000,
+		);
 
 
 
