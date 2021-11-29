@@ -2,6 +2,8 @@
 // works unexpectedly in wasm.
 
 // TODO: All structs destroy function to destroy all instances.
+// TODO: ResourseSet entity that have index (Vulkan set, WebGPU Group)
+// and includes UniformBlock and others.
 
 
 
@@ -22,6 +24,17 @@ extern "C" void console_log (std::size_t);
 extern "C" std::size_t getTime (void);
 
 // use templates
+
+extern "C" void* getStdVectorDataUint32 (std::vector<uint32_t>& v)
+{
+	return v.data();
+}
+
+extern "C" std::size_t getStdVectorSizeUint32 (std::vector<uint32_t>& v)
+{
+	LOG(v.size());
+	return v.size();
+}
 
 extern "C" void* getStdVectorDataFloat (std::vector<float>& v)
 {
@@ -55,7 +68,24 @@ extern "C" std::size_t getStdStringSize (std::string& s)
 
 
 
-enum class Topology : std::size_t
+// struct DescriptorBinding
+// {};
+
+struct DescriptorSet
+{
+	std::vector<void*> bindings {};
+};
+
+struct DescriptorSetOffsets
+{
+	size_t bindings = offsetof(DescriptorSet, bindings);
+};
+
+DescriptorSetOffsets descriptor_set_offsets {};
+
+
+
+enum class Topology : size_t
 {
 	TRIANGLES,
 	POINTS,
@@ -144,20 +174,20 @@ struct MaterialOptions
 			[[builtin(position)]] pos : vec4<f32>;
 		};
 
-		[[block]] struct Dedicated
-		{
-			w_offset : f32;
-		};
-
-		[[group(0), binding(0)]] var<uniform> dedicated : Dedicated;
-
 		[[block]] struct Camera
 		{
 			projection_matrix : mat4x4<f32>;
 			view_matrix : mat4x4<f32>;
 		};
 
-		[[group(0), binding(1)]] var<uniform> camera : Camera;
+		[[group(0), binding(0)]] var<uniform> camera : Camera;
+
+		[[block]] struct Dedicated
+		{
+			w_offset : f32;
+		};
+
+		[[group(0), binding(1)]] var<uniform> dedicated : Dedicated;
 
 		[[stage(vertex)]] fn main(input : VertexIn) -> VertexOut
 		{
@@ -177,6 +207,10 @@ struct MaterialOptions
 		}
 	)"};
 };
+
+
+
+
 
 
 
@@ -209,7 +243,11 @@ struct Material
 
 	std::vector<XGK::API::UniformBlock*> uniform_blocks {};
 
-	XGK::API::UniformBlock dedicated_uniform_block {{ .binding = 0, .name = "Dedicated" }};
+	std::vector<DescriptorSet*> descriptor_sets {};
+
+	// XGK::API::UniformBlock dedicated_uniform_block {{ .binding = 0, .name = "Dedicated" }};
+
+	// #include "glsl450_fragment_code.h"
 
 
 
@@ -234,7 +272,9 @@ struct MaterialOffsets
 	size_t wgsl_code_fragment = offsetof(Material, wgsl_code_fragment);
 	size_t uniforms = offsetof(Material, uniforms);
 	size_t uniform_blocks = offsetof(Material, uniform_blocks);
-	size_t dedicated_uniform_block = offsetof(Material, dedicated_uniform_block);
+	size_t descriptor_sets = offsetof(Material, descriptor_sets);
+	// size_t dedicated_uniform_block = offsetof(Material, dedicated_uniform_block);
+	// size_t glsl450_fragment_code = offsetof(Material, glsl450_fragment_code);
 };
 
 MaterialOffsets material_offsets;
@@ -392,33 +432,29 @@ void Scene::addObject (SceneObject* object)
 float window_width {};
 float window_height {};
 
-Scene* scene {};
-Material* material {};
-Material* material2 {};
-XGK::API::UniformBlock* uniform_block {};
-SceneObject* object {};
-SceneObject* object2 {};
-XGK::MATH::Orbit* orbit;
-XGK::MATH::Orbit* orbit2;
-
-
-
 extern "C" void setWindowSize (const float _window_width, const float _window_height)
 {
 	window_width = _window_width;
 	window_height = _window_height;
 }
 
-extern "C" void destroy (void)
-{
-	delete object;
-	delete material;
-	delete scene;
-}
+Scene* scene {};
+Material* material {};
+Material* material2 {};
+XGK::API::UniformBlock* uniform_block0 {};
+XGK::API::UniformBlock* uniform_block1 {};
+SceneObject* object {};
+SceneObject* object2 {};
+XGK::MATH::Orbit* orbit {};
+XGK::MATH::Orbit* orbit2 {};
+DescriptorSet* desc_set1 {};
+DescriptorSet* desc_set2 {};
+
 
 int main (void)
 {
 	scene = new Scene;
+
 	material = new Material
 	{{
 		.topology = Topology::TRIANGLES,
@@ -442,7 +478,7 @@ int main (void)
 					view_matrix : mat4x4<f32>;
 				};
 
-				[[group(0), binding(1)]] var<uniform> camera : Camera;
+				[[group(0), binding(0)]] var<uniform> camera : Camera;
 
 				[[stage(vertex)]] fn main(input : VertexIn) -> VertexOut
 				{
@@ -494,7 +530,21 @@ int main (void)
 			)",
 	}};
 
-	uniform_block = new XGK::API::UniformBlock{{ .binding = 1, .name = "Camera" }};
+	uniform_block0 =
+		new XGK::API::UniformBlock
+		{{
+			.binding = 0,
+			.type = XGK::API::DescriptorBindingType::UNIFORM_BUFFER,
+			.name = "Camera",
+		}};
+
+	uniform_block1 =
+		new XGK::API::UniformBlock
+		{{
+			.binding = 1,
+			.type = XGK::API::DescriptorBindingType::UNIFORM_BUFFER,
+			.name = "Camera2",
+		}};
 
 	object = new SceneObject;
 	object2 = new SceneObject;
@@ -528,13 +578,29 @@ int main (void)
 	material2->injectUniform(new XGK::API::Uniform { .object_addr = &(orbit->projection_matrix), .name = "projection_matrix", .size = sizeof(orbit->projection_matrix) });
 	material2->injectUniform(new XGK::API::Uniform { .object_addr = &(orbit->view_matrix), .name = "view_matrix", .size = sizeof(orbit->view_matrix) });
 
-	uniform_block->injectUniform(new XGK::API::Uniform { .object_addr = &(orbit->projection_matrix), .block_index = offsetof(XGK::MATH::Orbit, projection_matrix), .size = sizeof(orbit->projection_matrix) });
-	uniform_block->injectUniform(new XGK::API::Uniform { .object_addr = &(orbit->view_matrix), .block_index = offsetof(XGK::MATH::Orbit, view_matrix), .size = sizeof(orbit->view_matrix) });
+	uniform_block0->injectUniform(new XGK::API::Uniform { .object_addr = &(orbit->projection_matrix), .block_index = offsetof(XGK::MATH::Orbit, projection_matrix), .size = sizeof(orbit->projection_matrix) });
+	uniform_block0->injectUniform(new XGK::API::Uniform { .object_addr = &(orbit->view_matrix), .block_index = offsetof(XGK::MATH::Orbit, view_matrix), .size = sizeof(orbit->view_matrix) });
 
-	material2->dedicated_uniform_block.injectUniform(new XGK::API::Uniform { .object_addr = &(orbit2->view_matrix), .block_index = 0, .size = sizeof(float) });
+	uniform_block1->injectUniform(new XGK::API::Uniform { .object_addr = &(orbit2->view_matrix), .block_index = 0, .size = sizeof(float) });
 
-	material->injectUniformBlock(uniform_block);
-	material2->injectUniformBlock(uniform_block);
+	material->injectUniformBlock(uniform_block0);
+	material2->injectUniformBlock(uniform_block0);
+
+
+
+	desc_set1 = new DescriptorSet;
+	desc_set2 = new DescriptorSet;
+
+	desc_set1->bindings.push_back(uniform_block0);
+
+	// TODO: specify binding index at pushing (desc_set2->injectBinding(uniform_block0, 0))
+	desc_set2->bindings.push_back(uniform_block0);
+	desc_set2->bindings.push_back(uniform_block1);
+
+	material->descriptor_sets.push_back(desc_set1);
+	material2->descriptor_sets.push_back(desc_set2);
+
+
 
 	return 0;
 }

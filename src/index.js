@@ -36,9 +36,11 @@ window.addEventListener
 		const scene_addr = wasm.Addr(wasm.exports.scene.value);
 		const material_addr = wasm.Addr(wasm.exports.material.value);
 		const material2_addr = wasm.Addr(wasm.exports.material2.value);
-		const uniform_block_addr = wasm.Addr(wasm.exports.uniform_block.value);
+		const uniform_block0_addr = wasm.Addr(wasm.exports.uniform_block0.value);
 		const object_addr = wasm.Addr(wasm.exports.object.value);
 		const object2_addr = wasm.Addr(wasm.exports.object2.value);
+		const desc_set1_addr = wasm.Addr(wasm.exports.desc_set1.value);
+		const desc_set2_addr = wasm.Addr(wasm.exports.desc_set2.value);
 
 
 
@@ -174,7 +176,7 @@ window.addEventListener
 			const scene = Scene.getInstance(scene_addr);
 			const material = Material.getInstance(material_addr);
 			const material2 = Material.getInstance(material2_addr);
-			const uniform_block = UniformBlock.getInstance(uniform_block_addr);
+			const uniform_block0 = UniformBlock.getInstance(uniform_block0_addr);
 			const _object = Object.getInstance(object_addr);
 			const object2 = Object.getInstance(object2_addr);
 
@@ -200,7 +202,7 @@ window.addEventListener
 			{
 				gl.clear(gl.COLOR_BUFFER_BIT);
 
-				uniform_block.use();
+				uniform_block0.use();
 
 				material.use();
 
@@ -247,6 +249,7 @@ window.addEventListener
 					Scene,
 					Material,
 					UniformBlock,
+					DescriptorSet,
 					Object,
 				} = renderer;
 
@@ -255,9 +258,15 @@ window.addEventListener
 			const scene = Scene.getInstance(scene_addr);
 			const material = Material.getInstance(material_addr);
 			const material2 = Material.getInstance(material2_addr);
-			const uniform_block = UniformBlock.getInstance(uniform_block_addr);
+			// const uniform_block0 = UniformBlock.getInstance(uniform_block0_addr);
+			const desc_set1 = DescriptorSet.getInstance(desc_set1_addr);
+			const desc_set2 = DescriptorSet.getInstance(desc_set2_addr);
 			const _object = Object.getInstance(object_addr);
 			const object2 = Object.getInstance(object2_addr);
+
+			LOG(desc_set1)
+			LOG(desc_set2)
+			LOG(UniformBlock.instances)
 
 
 
@@ -306,11 +315,13 @@ window.addEventListener
 
 				renderer.render_pass_encoder.setVertexBuffer(0, c, 0, scene.vertex_data.byteLength);
 
-				uniform_block.use();
+				desc_set1.use(0);
 
 				material.use();
 
 				_object.draw();
+
+				desc_set2.use(0);
 
 				material2.use();
 
