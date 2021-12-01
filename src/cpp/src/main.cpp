@@ -455,8 +455,9 @@ XGK::MATH::Orbit* orbit2 {};
 DescriptorSet* desc_set1 {};
 DescriptorSet* desc_set2 {};
 
-float* curve_values {};
+float curve_values [5000];
 XGK::Transition orbit_transition;
+XGK::Transition orbit_transition2;
 
 extern "C" void ___test (const size_t& time_gone)
 {
@@ -482,11 +483,35 @@ extern "C" void ___test (const size_t& time_gone)
 	orbit->update();
 }
 
+extern "C" void ___test2 (const size_t& time_gone)
+{
+	static size_t prev_time {};
+
+	float temp { curve_values[time_gone - 1] };
+
+	if (time_gone < prev_time)
+	{
+		prev_time = 0;
+	}
+
+	orbit->translation_speed_y = temp * (time_gone - prev_time) * 0.001;
+
+	// LOGF(temp);
+
+	// LOG(time_gone);
+	// LOG(prev_time);
+
+	prev_time = time_gone;
+
+	orbit->transY();
+	orbit->update();
+}
+
 XGK::TransitionStack* _stack {};
 
 extern "C" void initTransitionStack (void)
 {
-	curve_values = new float [5000];
+	// curve_values = new float [5000];
 
 	// XGK::MATH::UTIL::makeBezierCurve3Sequence2
 	// (
@@ -521,7 +546,6 @@ extern "C" void initTransitionStack (void)
 		// 1.0f * 3.14f / 1000000000.0f,
 		// 1.0f * 3.14f / 1000000000.0f,
 
-
 		5000
 	);
 
@@ -532,20 +556,31 @@ extern "C" void updateTransitions (void)
 {
 	_stack->calculateFrametime();
 	_stack->update();
+	// LOG(_stack->length);
 }
 
-extern "C" void updateTransitions2 (void)
-{
-	while (1)
-	{
-		_stack->calculateFrametime();
-		_stack->update();
-	}
-}
+// extern "C" void updateTransitions2 (void)
+// {
+// 	while (1)
+// 	{
+// 		_stack->calculateFrametime();
+// 		_stack->update();
+// 	}
+// }
+
+// extern "C" void startTransition (void)
+// {
+// 	orbit_transition.start2(5000, ___test);
+// }
 
 extern "C" void startTransition (void)
 {
 	orbit_transition.start2(5000, ___test);
+}
+
+extern "C" void startTransition2 (void)
+{
+	orbit_transition2.start2(5000, ___test2);
 }
 
 int main (void)

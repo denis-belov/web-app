@@ -37,6 +37,8 @@ window.addEventListener
 
 		wasm.exports.setWindowSize(window.innerWidth / 2, window.innerHeight);
 
+		wasm.exports.initTransitionStack();
+
 		wasm.exports.main();
 
 
@@ -78,7 +80,8 @@ window.addEventListener
 
 		updateOrbit();
 
-		setTimeout(wasm.exports.startTransition, 3000);
+		// setTimeout(wasm.exports.startTransition, 3000);
+		// setTimeout(wasm.exports.startTransition, 4000);
 
 
 
@@ -88,8 +91,10 @@ window.addEventListener
 
 			(evt) =>
 			{
-				wasm.exports._ZN3XGK4MATH5Orbit7rotate2Eff(orbit, evt.movementX * 0.01, evt.movementY * 0.01);
-				wasm.exports._ZN3XGK4MATH5Orbit6updateEv(orbit);
+			// 	wasm.exports._ZN3XGK4MATH5Orbit7rotate2Eff(orbit, evt.movementX * 0.01, evt.movementY * 0.01);
+			// 	wasm.exports._ZN3XGK4MATH5Orbit6updateEv(orbit);
+
+				wasm.exports.startTransition();
 			},
 		);
 

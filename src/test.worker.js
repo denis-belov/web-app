@@ -10,10 +10,9 @@ onmessage = async ({ data }) =>
 
 	await wasm.init(data.code, data.memory);
 
-	wasm.exports.initTransitionStack();
+	// wasm.exports.initTransitionStack();
 
 
 
-	setInterval(wasm.exports.updateTransitions, 0);
-	// wasm.exports.updateTransitions2();
+	setInterval(wasm.exports.updateTransitions);
 };
