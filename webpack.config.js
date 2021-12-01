@@ -9,15 +9,20 @@ const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 const OptimizeCSSAssetsPlugin = require('optimize-css-assets-webpack-plugin');
 // const CopyPlugin = require('copy-webpack-plugin');
 
+
+
 module.exports = (env) =>
 	({
 		entry: './src/index.js',
 
 		target: 'web',
 
+		// Maybe prevent caching only for C++ modules?
+		cache: false,
+
 		resolve:
 		{
-			extensions: [ '.js', '.css', '.scss' ],
+			extensions: [ '.js', '.scss' ],
 		},
 
 		output:
@@ -35,7 +40,7 @@ module.exports = (env) =>
 
 					use:
 
-						env === 'development' ?
+						env.development ?
 
 							[
 								{
@@ -53,10 +58,10 @@ module.exports = (env) =>
 				},
 
 				{
-					test: /\.(css|scss)$/,
+					test: /\.scss$/,
 
-					use: [
-
+					use:
+					[
 						MiniCssExtractPlugin.loader,
 						// to insert css into html
 						// 'style-loader',
@@ -68,8 +73,8 @@ module.exports = (env) =>
 				{
 					test: /\.pug$/,
 
-					use: [
-
+					use:
+					[
 						'html-loader',
 						'pug-html-loader',
 					],
@@ -100,7 +105,7 @@ module.exports = (env) =>
 			],
 		},
 
-		devtool: env === 'development' ? 'source-map' : false,
+		devtool: env.development ? 'source-map' : false,
 
 		plugins:
 		[
@@ -146,9 +151,18 @@ module.exports = (env) =>
 		devServer:
 		{
 			compress: true,
+			// hot: false,
+			// liveReload: false,
 			historyApiFallback: true,
 			host: 'localhost',
 			port: 8080,
 			// open: true,
+
+			// Enable using shared array buffers.
+			headers:
+			{
+				'Cross-Origin-Opener-Policy': 'same-origin',
+				'Cross-Origin-Embedder-Policy': 'require-corp',
+			},
 		},
 	});

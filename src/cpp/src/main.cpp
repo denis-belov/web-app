@@ -485,22 +485,9 @@ extern "C" void ___test (const size_t& time_gone)
 
 XGK::TransitionStack* _stack {};
 
-extern "C" void updateTransitions (void)
-{
-	_stack->calculateFrametime();
-	_stack->update();
-}
-
-extern "C" void startTransition (void)
-{
-	orbit_transition.start2(5000, ___test);
-}
-
-int main (void)
+extern "C" void initTransitionStack (void)
 {
 	curve_values = new float [5000];
-
-	_stack = new XGK::TransitionStack { 64 };
 
 	// XGK::MATH::UTIL::makeBezierCurve3Sequence2
 	// (
@@ -539,6 +526,34 @@ int main (void)
 		5000
 	);
 
+	_stack = new XGK::TransitionStack { 64 };
+}
+
+extern "C" void updateTransitions (void)
+{
+	_stack->calculateFrametime();
+	_stack->update();
+
+	// LOG(_stack->frame_time)
+	// LOGF(1.0f)
+}
+
+extern "C" void updateTransitions2 (void)
+{
+	while (1)
+	{
+		_stack->calculateFrametime();
+		_stack->update();
+	}
+}
+
+extern "C" void startTransition (void)
+{
+	orbit_transition.start2(5000, ___test);
+}
+
+int main (void)
+{
 	scene = new Scene;
 
 	material = new Material

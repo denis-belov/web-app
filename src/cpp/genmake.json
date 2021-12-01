@@ -3,6 +3,8 @@
 	{
 		"clang-wasm32":
 		{
+			"FLAGS_ADD": "-matomics -mbulk-memory",
+
 			"LIBS": "/home/denis/libs",
 			"REPS": "/home/denis/reps",
 
@@ -12,6 +14,8 @@
 
 		"clang-wasm64":
 		{
+			"FLAGS_ADD": "-matomics -mbulk-memory",
+
 			"LIBS": "/home/denis/libs",
 			"REPS": "/home/denis/reps",
 
@@ -35,16 +39,15 @@
 			"$(REPS)/denis-belov/xgk-api/src"
 		],
 
-		"flags_additional": "$(STD_20) $(NO_LINK) $(VERBOSE) $(OPT_FASTX) $(SSE)",
+		"flags_additional": "$(STD_20) $(NO_LINK) $(VERBOSE) $(OPT_FASTX) $(SSE) $(FLAGS_ADD)",
 
 		"watch_files":
 		[
 			{
 				"file": "$(SRC)/main.cpp",
+
 				"watch_files":
 				[
-					"$(SRC)/main.h",
-
 					{
 						"file": "$(BUILD)/h/glsl450_fragment_code.h",
 
