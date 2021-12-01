@@ -29,7 +29,7 @@ window.addEventListener
 
 	async () =>
 	{
-		const memory = new WebAssembly.Memory({ initial: 2, maximum: 10, shared: true });
+		const memory = new WebAssembly.Memory({ initial: 2, maximum: 2, shared: true });
 
 		const wasm = new WasmWrapper();
 
@@ -78,15 +78,7 @@ window.addEventListener
 
 		updateOrbit();
 
-		// setTimeout
-		// (
-		// 	() =>
-		// 	{
-		// 		wasm.exports.startTransition();
-		// 	},
-
-		// 	3000,
-		// );
+		setTimeout(wasm.exports.startTransition, 3000);
 
 
 
