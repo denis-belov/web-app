@@ -6,8 +6,6 @@ import WasmWrapper from '../../xgk-js/src/wasm-wrapper.js';
 
 onmessage = async ({ data }) =>
 {
-	LOG(data)
-
 	const wasm = new WasmWrapper();
 
 	await wasm.init(data.code, data.memory);
@@ -16,7 +14,6 @@ onmessage = async ({ data }) =>
 
 
 
-	// setTimeout(wasm.exports.startTransition, 3000);
-
 	setInterval(wasm.exports.updateTransitions, 0);
+	// wasm.exports.updateTransitions2();
 };

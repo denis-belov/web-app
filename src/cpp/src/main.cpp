@@ -38,7 +38,6 @@ extern "C" void* getStdVectorDataUint32 (std::vector<uint32_t>& v)
 
 extern "C" std::size_t getStdVectorSizeUint32 (std::vector<uint32_t>& v)
 {
-	LOG(v.size());
 	return v.size();
 }
 
@@ -533,9 +532,6 @@ extern "C" void updateTransitions (void)
 {
 	_stack->calculateFrametime();
 	_stack->update();
-
-	// LOG(_stack->frame_time)
-	// LOGF(1.0f)
 }
 
 extern "C" void updateTransitions2 (void)
