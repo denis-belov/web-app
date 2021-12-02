@@ -19,7 +19,7 @@ import wasm_code from './cpp/src/entry-wasm32.cpp';
 
 
 
-const test_worker = new TestWorker();
+const threads = [ ...new Array(2) ].map(() => new TestWorker());
 
 
 
@@ -29,6 +29,8 @@ window.addEventListener
 
 	async () =>
 	{
+		LOG(window.navigator.hardwareConcurrency);
+
 		const memory = new WebAssembly.Memory({ initial: 2, maximum: 2, shared: true });
 
 		const wasm = new WasmWrapper();
@@ -43,7 +45,8 @@ window.addEventListener
 
 
 
-		test_worker.postMessage({ code: wasm_code, memory });
+		threads.forEach
+		((thread, thread_index) => thread.postMessage({ id: thread_index, code: wasm_code, memory }));
 
 
 
@@ -80,8 +83,10 @@ window.addEventListener
 
 		updateOrbit();
 
-		// setTimeout(wasm.exports.startTransition, 3000);
-		// setTimeout(wasm.exports.startTransition, 4000);
+		setTimeout(wasm.exports.startTransition, 3000);
+		setTimeout(wasm.exports.startTransition2, 4000);
+
+		// setInterval(wasm.exports.logStacks, 100);
 
 
 
@@ -94,7 +99,7 @@ window.addEventListener
 			// 	wasm.exports._ZN3XGK4MATH5Orbit7rotate2Eff(orbit, evt.movementX * 0.01, evt.movementY * 0.01);
 			// 	wasm.exports._ZN3XGK4MATH5Orbit6updateEv(orbit);
 
-				wasm.exports.startTransition();
+				// wasm.exports.startTransition();
 			},
 		);
 
@@ -179,89 +184,94 @@ window.addEventListener
 
 
 		{
-			// const renderer =
-			// 	new WebGLRenderer(wasm, document.querySelectorAll('canvas')[1], 'webgl2', window.innerWidth / 3, window.innerHeight);
+			const renderer =
+				new WebGLRenderer(wasm, document.querySelectorAll('canvas')[1], 'webgl2', window.innerWidth / 3, window.innerHeight);
 
-			// const gl = renderer._context;
-
-
-
-			// const
-			// 	{
-			// 		Scene,
-			// 		Material,
-			// 		UniformBlock,
-			// 		Object,
-			// 	} = renderer;
+			const gl = renderer._context;
 
 
 
-			// const scene = Scene.getInstance(scene_addr);
-			// const material = Material.getInstance(material_addr);
-			// const material2 = Material.getInstance(material2_addr);
-			// const uniform_block0 = UniformBlock.getInstance(uniform_block0_addr);
-			// const _object = Object.getInstance(object_addr);
-			// const object2 = Object.getInstance(object2_addr);
+			const
+				{
+					Scene,
+					Material,
+					UniformBlock,
+					Object,
+				} = renderer;
 
 
 
-			// const b = gl.createBuffer();
-
-			// gl.bindBuffer(gl.ARRAY_BUFFER, b);
-			// gl.bufferData(gl.ARRAY_BUFFER, scene.vertex_data, gl.STATIC_DRAW);
-			// gl.vertexAttribPointer(0, 3, gl.FLOAT, 0, 0, 0);
-
-			// gl.enableVertexAttribArray(0);
-
-
-
-			// let time = Date.now();
-
-			// const [ , fps ] = document.querySelectorAll('.fps');
-
-			// let fps_counter = 0;
-
-			// const render = () =>
-			// {
-			// 	gl.clear(gl.COLOR_BUFFER_BIT);
-
-			// 	uniform_block0.use();
-
-			// 	material.use();
-
-			// 	_object.draw();
-
-			// 	material2.use();
-
-			// 	object2.draw();
+			const scene = Scene.getInstance(scene_addr);
+			const material = Material.getInstance(material_addr);
+			const material2 = Material.getInstance(material2_addr);
+			const uniform_block0 = UniformBlock.getInstance(uniform_block0_addr);
+			const _object = Object.getInstance(object_addr);
+			const object2 = Object.getInstance(object2_addr);
 
 
 
+			const b = gl.createBuffer();
 
-			// 	if (Math.floor((Date.now() - time) * 0.001))
-			// 	{
-			// 		fps.innerHTML = fps_counter;
+			gl.bindBuffer(gl.ARRAY_BUFFER, b);
+			gl.bufferData(gl.ARRAY_BUFFER, scene.vertex_data, gl.STATIC_DRAW);
+			gl.vertexAttribPointer(0, 3, gl.FLOAT, 0, 0, 0);
 
-			// 		fps_counter = 0;
-
-			// 		time = Date.now();
-			// 	}
-
-			// 	++fps_counter;
+			gl.enableVertexAttribArray(0);
 
 
 
-			// 	requestAnimationFrame(render);
-			// };
+			let time = Date.now();
 
-			// render();
+			const [ , fps ] = document.querySelectorAll('.fps');
+
+			let fps_counter = 0;
+
+			const render = () =>
+			{
+				gl.clear(gl.COLOR_BUFFER_BIT);
+
+				uniform_block0.use();
+
+				material.use();
+
+				_object.draw();
+
+				material2.use();
+
+				object2.draw();
+
+
+
+
+				if (Math.floor((Date.now() - time) * 0.001))
+				{
+					fps.innerHTML = fps_counter;
+
+					fps_counter = 0;
+
+					time = Date.now();
+				}
+
+				++fps_counter;
+
+
+
+				requestAnimationFrame(render);
+			};
+
+			render();
 		}
 
 
 
 		{
 			const renderer =
-				new WebGPURenderer(wasm, document.querySelectorAll('canvas')[2], window.innerWidth / 3, window.innerHeight);
+				new WebGPURenderer
+				({
+					wasm_wrapper_instance: wasm,
+					size: [ window.innerWidth / 3, window.innerHeight ],
+					canvas: document.querySelectorAll('canvas')[2],
+				});
 
 			await renderer.init();
 
@@ -271,7 +281,7 @@ window.addEventListener
 				{
 					Scene,
 					Material,
-					UniformBlock,
+					// UniformBlock,
 					DescriptorSet,
 					Object,
 				} = renderer;

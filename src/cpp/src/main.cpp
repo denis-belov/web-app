@@ -1,10 +1,6 @@
 // Passing const scalar arguments by refefence
 // works unexpectedly in wasm.
 
-// TODO: All structs destroy function to destroy all instances.
-// TODO: ResourseSet entity that have index (Vulkan set, WebGPU Group)
-// and includes UniformBlock and others.
-
 
 
 #include <cstring>
@@ -29,34 +25,14 @@ extern "C" void console_log_f (float);
 
 extern "C" std::size_t getTime (void);
 
-// use templates
 
-extern "C" void* getStdVectorDataUint32 (std::vector<uint32_t>& v)
+
+extern "C" void* getStdVectorData (std::vector<int>& v)
 {
 	return v.data();
 }
 
-extern "C" std::size_t getStdVectorSizeUint32 (std::vector<uint32_t>& v)
-{
-	return v.size();
-}
-
-extern "C" void* getStdVectorDataFloat (std::vector<float>& v)
-{
-	return v.data();
-}
-
-extern "C" std::size_t getStdVectorSizeFloat (std::vector<float>& v)
-{
-	return v.size();
-}
-
-extern "C" void* getStdVectorDataAddr (std::vector<void*>& v)
-{
-	return v.data();
-}
-
-extern "C" std::size_t getStdVectorSizeAddr (std::vector<void*>& v)
+extern "C" size_t getStdVectorSize (std::vector<int>& v)
 {
 	return v.size();
 }
@@ -66,7 +42,7 @@ extern "C" void* getStdStringData (std::string& s)
 	return s.data();
 }
 
-extern "C" std::size_t getStdStringSize (std::string& s)
+extern "C" size_t getStdStringSize (std::string& s)
 {
 	return s.size();
 }
@@ -507,7 +483,8 @@ extern "C" void ___test2 (const size_t& time_gone)
 	orbit->update();
 }
 
-XGK::TransitionStack* _stack {};
+XGK::TransitionStack* _stack0 {};
+XGK::TransitionStack* _stack1 {};
 
 extern "C" void initTransitionStack (void)
 {
@@ -549,14 +526,26 @@ extern "C" void initTransitionStack (void)
 		5000
 	);
 
-	_stack = new XGK::TransitionStack { 64 };
+	_stack0 = new XGK::TransitionStack { 64 };
+	_stack1 = new XGK::TransitionStack { 64 };
 }
 
-extern "C" void updateTransitions (void)
+extern "C" void updateTransitions0 (void)
 {
-	_stack->calculateFrametime();
-	_stack->update();
-	// LOG(_stack->length);
+	_stack0->calculateFrametime();
+	_stack0->update();
+}
+
+extern "C" void updateTransitions1 (void)
+{
+	_stack1->calculateFrametime();
+	_stack1->update();
+}
+
+extern "C" void logStacks (void)
+{
+	LOG(_stack0->length)
+	LOG(_stack1->length)
 }
 
 // extern "C" void updateTransitions2 (void)
