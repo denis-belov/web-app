@@ -34,10 +34,11 @@
 		"node-sass": "^6.0.1"
 	},
 	"dependencies": {
-		"@3d-smile/glkit": "0.0.114",
+		"@3d-smile/glkit": "latest",
+		"three": "latest",
+		"dat.gui": "latest",
+		"external-data-loader": "latest",
 		"earcut": "^2.2.3",
-		"three": "^0.135.0",
-		"external-data-loader": "0.0.26",
 		"file-saver": "^2.0.5"
 	},
 	"scripts": {

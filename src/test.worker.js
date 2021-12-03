@@ -10,7 +10,7 @@ onmessage = async (message) =>
 
 	const wasm = new WasmWrapper();
 
-	await wasm.init(code, memory);
+	await wasm.init(code, memory, false);
 
 
 

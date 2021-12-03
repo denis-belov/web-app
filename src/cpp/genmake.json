@@ -49,15 +49,28 @@
 				"watch_files":
 				[
 					{
-						"file": "$(BUILD)/h/glsl450_fragment_code.h",
+						"file": "$(BUILD)/h/spirv_code_vertex.h",
 
-						"watch_files": "$(SRC)/glsl450_fragment_code.frag",
+						"watch_files": "$(SRC)/code.vert",
 
 						"do":
 						[
 							"$(MAKE_SPV) && $(MAKE_H) && ",
-							"glslangValidator $(SRC)/glsl450_fragment_code.frag -V -t -o $(BUILD)/spv/glsl450_fragment_code.spv && ",
-							"spv2uint32 $(BUILD)/spv/glsl450_fragment_code.spv $(BUILD)/h/glsl450_fragment_code.h glsl450_fragment_code"
+							"glslangValidator $(SRC)/code.vert -V -t -o $(BUILD)/spv/vertex.spv && ",
+							"spv2uint32 $(BUILD)/spv/vertex.spv $(BUILD)/h/spirv_code_vertex.h spirv_code_vertex"
+						]
+					},
+
+					{
+						"file": "$(BUILD)/h/spirv_code_fragment.h",
+
+						"watch_files": "$(SRC)/code.frag",
+
+						"do":
+						[
+							"$(MAKE_SPV) && $(MAKE_H) && ",
+							"glslangValidator $(SRC)/code.frag -V -t -o $(BUILD)/spv/fragment.spv && ",
+							"spv2uint32 $(BUILD)/spv/fragment.spv $(BUILD)/h/spirv_code_fragment.h spirv_code_fragment"
 						]
 					}
 				]

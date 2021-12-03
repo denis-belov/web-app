@@ -142,6 +142,9 @@ struct MaterialOptions
 		}
 	)"};
 
+	#include "spirv_code_vertex.h"
+	#include "spirv_code_fragment.h"
+
 	std::string wgsl_code_vertex
 	{R"(
 		[[block]] struct VertexIn
@@ -217,6 +220,8 @@ struct Material
 	std::string glsl100es_code_fragment {};
 	std::string glsl300es_code_vertex {};
 	std::string glsl300es_code_fragment {};
+	#include "spirv_code_vertex.h"
+	#include "spirv_code_fragment.h"
 	std::string wgsl_code_vertex {};
 	std::string wgsl_code_fragment {};
 
@@ -227,8 +232,6 @@ struct Material
 	std::vector<DescriptorSet*> descriptor_sets {};
 
 	// XGK::API::UniformBlock dedicated_uniform_block {{ .binding = 0, .name = "Dedicated" }};
-
-	// #include "glsl450_fragment_code.h"
 
 
 
@@ -249,13 +252,14 @@ struct MaterialOffsets
 	size_t glsl100es_code_fragment = offsetof(Material, glsl100es_code_fragment);
 	size_t glsl300es_code_vertex = offsetof(Material, glsl300es_code_vertex);
 	size_t glsl300es_code_fragment = offsetof(Material, glsl300es_code_fragment);
+	size_t spirv_code_vertex = offsetof(Material, spirv_code_vertex);
+	size_t spirv_code_fragment = offsetof(Material, spirv_code_fragment);
 	size_t wgsl_code_vertex = offsetof(Material, wgsl_code_vertex);
 	size_t wgsl_code_fragment = offsetof(Material, wgsl_code_fragment);
 	size_t uniforms = offsetof(Material, uniforms);
 	size_t uniform_blocks = offsetof(Material, uniform_blocks);
 	size_t descriptor_sets = offsetof(Material, descriptor_sets);
 	// size_t dedicated_uniform_block = offsetof(Material, dedicated_uniform_block);
-	// size_t glsl450_fragment_code = offsetof(Material, glsl450_fragment_code);
 };
 
 MaterialOffsets material_offsets;
@@ -272,6 +276,8 @@ Material::Material (void)
 	glsl100es_code_fragment = options.glsl100es_code_fragment;
 	glsl300es_code_vertex = options.glsl300es_code_vertex;
 	glsl300es_code_fragment = options.glsl300es_code_fragment;
+	spirv_code_vertex = options.spirv_code_vertex;
+	spirv_code_fragment = options.spirv_code_fragment;
 	wgsl_code_vertex = options.wgsl_code_vertex;
 	wgsl_code_fragment = options.wgsl_code_fragment;
 
@@ -286,6 +292,8 @@ Material::Material (const MaterialOptions& options)
 	glsl100es_code_fragment = options.glsl100es_code_fragment;
 	glsl300es_code_vertex = options.glsl300es_code_vertex;
 	glsl300es_code_fragment = options.glsl300es_code_fragment;
+	spirv_code_vertex = options.spirv_code_vertex;
+	spirv_code_fragment = options.spirv_code_fragment;
 	wgsl_code_vertex = options.wgsl_code_vertex;
 	wgsl_code_fragment = options.wgsl_code_fragment;
 
@@ -300,6 +308,8 @@ Material::Material (const MaterialOptions&& options)
 	glsl100es_code_fragment = options.glsl100es_code_fragment;
 	glsl300es_code_vertex = options.glsl300es_code_vertex;
 	glsl300es_code_fragment = options.glsl300es_code_fragment;
+	spirv_code_vertex = options.spirv_code_vertex;
+	spirv_code_fragment = options.spirv_code_fragment;
 	wgsl_code_vertex = options.wgsl_code_vertex;
 	wgsl_code_fragment = options.wgsl_code_fragment;
 
