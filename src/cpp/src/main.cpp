@@ -226,9 +226,7 @@ struct Material
 	std::string wgsl_code_fragment {};
 
 	std::vector<XGK::API::Uniform*> uniforms {};
-
 	std::vector<XGK::API::UniformBlock*> uniform_blocks {};
-
 	std::vector<DescriptorSet*> descriptor_sets {};
 
 	// XGK::API::UniformBlock dedicated_uniform_block {{ .binding = 0, .name = "Dedicated" }};
