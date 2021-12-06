@@ -44,19 +44,19 @@
 		"watch_files":
 		[
 			{
-				"file": "$(SRC)/main.cpp",
+				"file": "$(REPS)/denis-belov/xgk-test/src/main.cpp",
 
 				"watch_files":
 				[
 					{
 						"file": "$(BUILD)/h/spirv_code_vertex.h",
 
-						"watch_files": "$(SRC)/code.vert",
+						"watch_files": "$(REPS)/denis-belov/xgk-test/src/code.vert",
 
 						"do":
 						[
 							"$(MAKE_SPV) && $(MAKE_H) && ",
-							"glslangValidator $(SRC)/code.vert -V -t -o $(BUILD)/spv/vertex.spv && ",
+							"glslangValidator $(REPS)/denis-belov/xgk-test/src/code.vert -V -t -o $(BUILD)/spv/vertex.spv && ",
 							"spv2uint32 $(BUILD)/spv/vertex.spv $(BUILD)/h/spirv_code_vertex.h spirv_code_vertex"
 						]
 					},
@@ -64,12 +64,12 @@
 					{
 						"file": "$(BUILD)/h/spirv_code_fragment.h",
 
-						"watch_files": "$(SRC)/code.frag",
+						"watch_files": "$(REPS)/denis-belov/xgk-test/src/code.frag",
 
 						"do":
 						[
 							"$(MAKE_SPV) && $(MAKE_H) && ",
-							"glslangValidator $(SRC)/code.frag -V -t -o $(BUILD)/spv/fragment.spv && ",
+							"glslangValidator $(REPS)/denis-belov/xgk-test/src/code.frag -V -t -o $(BUILD)/spv/fragment.spv && ",
 							"spv2uint32 $(BUILD)/spv/fragment.spv $(BUILD)/h/spirv_code_fragment.h spirv_code_fragment"
 						]
 					}

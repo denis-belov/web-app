@@ -1,5 +1,3 @@
-// Webpack 5.* dev server's live reload doesn't work correctly, try to update all dependencies to the latest later.
-
 const fs = require('fs');
 const path = require('path');
 const webpack = require('webpack');
@@ -7,7 +5,7 @@ const HtmlWebpackPlugin = require('html-webpack-plugin');
 const { CleanWebpackPlugin } = require('clean-webpack-plugin');
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 const OptimizeCSSAssetsPlugin = require('optimize-css-assets-webpack-plugin');
-// const CopyPlugin = require('copy-webpack-plugin');
+const CopyPlugin = require('copy-webpack-plugin');
 
 
 
@@ -129,16 +127,13 @@ module.exports = (env) =>
 				},
 			),
 
-			// new CopyPlugin(
-
-			// 	{
-			// 		patterns:
-			// 		[
-			// 			{ from: 'src/models', to: 'models' },
-			// 			{ from: 'src/textures', to: 'textures' },
-			// 		],
-			// 	},
-			// ),
+			// new CopyPlugin
+			// ({
+			// 	patterns:
+			// 	[
+			// 		{ from: 'src/public', to: 'build' },
+			// 	],
+			// }),
 
 			new webpack.DefinePlugin
 			(

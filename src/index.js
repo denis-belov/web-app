@@ -41,7 +41,7 @@ window.addEventListener
 
 		wasm.exports.initTransitionStack();
 
-		wasm.exports.main();
+		wasm.exports._Z23constructXgkApiWrappersv();
 
 
 
