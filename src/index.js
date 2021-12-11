@@ -37,7 +37,7 @@ window.addEventListener
 
 		await wasm.init(wasm_code, memory);
 
-		wasm.exports.setWindowSize(window.innerWidth / 2, window.innerHeight);
+		// wasm.exports.setWindowSize(window.innerWidth / 2, window.innerHeight);
 
 		wasm.exports.initTransitionStack();
 
@@ -54,7 +54,7 @@ window.addEventListener
 		const material_addr = wasm.Addr(wasm.exports.material.value);
 		const material2_addr = wasm.Addr(wasm.exports.material2.value);
 		const uniform_block0_addr = wasm.Addr(wasm.exports.uniform_block0.value);
-		const object_addr = wasm.Addr(wasm.exports.object.value);
+		const object_addr = wasm.Addr(wasm.exports._object.value);
 		const object2_addr = wasm.Addr(wasm.exports.object2.value);
 		const desc_set1_addr = wasm.Addr(wasm.exports.desc_set1.value);
 		const desc_set2_addr = wasm.Addr(wasm.exports.desc_set2.value);

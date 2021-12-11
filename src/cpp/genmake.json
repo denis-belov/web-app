@@ -32,11 +32,8 @@
 
 		"include_directories":
 		[
-			"$(SRC)",
 			"$(BUILD)/h",
-			"$(REPS)/denis-belov",
-			"$(REPS)/denis-belov/xgk-math/src",
-			"$(REPS)/denis-belov/xgk-api/src"
+			"$(REPS)/denis-belov"
 		],
 
 		"flags_additional": "$(STD_20) $(NO_LINK) $(VERBOSE) $(OPT_FASTX) $(SSE) $(FLAGS_ADD)",
